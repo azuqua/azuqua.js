@@ -15,7 +15,7 @@
 <h1>Usage</h1>
 <strong>
 	All asynchronous functions can return a promise if you prefer that pattern.
-	By default when you call an asynchronous function and 
+	When you call an asynchronous function and 
 	leave the callback undefined it will return a promise.
 	By default Azuqua uses bluebird.
 </strong>
