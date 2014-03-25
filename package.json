@@ -1,11 +1,15 @@
 {
   "name": "Azuqua",
-  "description": "A node.js Azuqua API client library.",
+  "description": "The official node.js Azuqua API client library.",
   "version": "0.1.0",
   "author": "Azuqua",
-  "contributors": [
-    "Embke, Alec <alec@azuqua.com>"
+  "keywords": [
+    "azuqua"
   ],
+  "contributors": [{
+    "name": "Alec Embke",
+    "url": "alec@azuqua.com"
+  }],
   "licenses": [{
     "type": "MIT",
     "url": "http://opensource.org/licenses/mit-license.php"

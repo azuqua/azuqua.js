@@ -2,7 +2,7 @@
 var assert = require("chai").assert,
 	Azuqua = require("../azuqua");
 
-// these only work in the development cloud
+// not real
 var testCredentials = {
     accessKey: "8dcc06ebea41729f5e48ffeaffec8d86d5da636d",
     accessSecret: "c35387a882a950173a266ab998c7a0a6e17c4b133083b4a50453b5f5efbbc4b1"
@@ -13,7 +13,7 @@ var testCredentials = {
 // and to load them with azuqua.loadConfig() or azuqua.loadConfigAsync()
 
 describe("Azuqua client instantiation tests", function(){
-	this.timeout(60000);
+	this.timeout(40000);
 
 	describe("Client instantiation without credentials", function(){
 		var azuqua = new Azuqua();

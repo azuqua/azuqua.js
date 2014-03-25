@@ -6,6 +6,9 @@ var async = require("async"),
   RestJS = require("restjs"),
   Promise = require("bluebird");
 
+  if(RestJS.Rest)
+    RestJS = RestJS.Rest;
+
 // Azuqua Node.js Client Library
 // -----------------------------
 
@@ -100,14 +103,14 @@ var Azuqua = function(accessKey, accessSecret){
     self.account.accessSecret = accessSecret;
 
   self.httpOptions = {
-    host: "apidev.azuqua.com",
-    port: 80,
+    host: "api.azuqua.com",
+    port: 443,
     headers: {
       "Content-Type": "application/json"
     }
   };
 
-  self.client = new RestJS.Rest({ protocol: "http" });
+  self.client = new RestJS({ protocol: "https" });
 
   self.makeRequest = function(options, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
