@@ -53,7 +53,6 @@
 </pre>
 <hr>
 <h1>LICENSE - "MIT License"</h1>
-<hr>
 Copyright (c) 2014 Azuqua
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
