@@ -22,9 +22,9 @@
     "url": "git://github.com/azuqua/azuqua.js"
   },
   "dependencies": {
-    "async": "0.2.10",
-    "underscore": "1.6.0",
-    "bluebird": "1.1.1",
+    "async": "~0.2.10",
+    "underscore": "~1.6.0",
+    "bluebird": "~1.1.1",
     "restjs": "git://github.com/azuqua/restjs.git"
   },
   "devDependencies": {
