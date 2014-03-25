@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>azuqua.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>azuqua.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">var</span> async = <span class="hljs-built_in">require</span>(<span class="hljs-string">"async"</span>),
+  _ = <span class="hljs-built_in">require</span>(<span class="hljs-string">"underscore"</span>),
+  fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">"fs"</span>),
+  crypto = <span class="hljs-built_in">require</span>(<span class="hljs-string">"crypto"</span>),
+  RestJS = <span class="hljs-built_in">require</span>(<span class="hljs-string">"restjs"</span>),
+  Promise = <span class="hljs-built_in">require</span>(<span class="hljs-string">"bluebird"</span>);</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <h2 id="azuqua-node-js-client-library">Azuqua Node.js Client Library</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>This library provides an easy interface for interacting with your Azuqua flos.
+The Azuqua API is directly exposed to developers should you wish to write your own library.
+For full API documentation please visit <a href="//developer.azuqua.com">developer.azuqua.com</a>.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>In order to make API requests you will need both your accessKey and accessSecret.
+These can be found on your account information page. </p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p><strong>
+All asynchronous functions can return a promise if you prefer that pattern.
+By default when you call an asynchronous function and 
+leave the callback undefined it will return a promise.
+By default Azuqua uses <a href="https://github.com/petkaantonov/bluebird">bluebird</a>.
+</strong></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>Should you wish to write your own library that makes HTTP requests directly you will need to provide the following data:</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p><code>data: &quot;stringified json object&quot;,</code> <br/>
+<code>hash: &quot;the hexidecimal string output of a HMAC of the data object signed by your accessSecret&quot;,</code> <br/>
+<code>accessKey: &quot;your access key&quot;</code></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>Please note that the API rate limits all clients by the maximum number of requests per second
+as determined by your account plan. By default this is 3 requests per second.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>Flos are not directly invocable via their name on the API. To invoke a flo you first need to 
+get the alias for the flo. These can be found at the /api/account/flos route. This client maintains
+an internal mapping between each flo name and its alias so you can invoke flos directly by their name.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>
+<span class="hljs-keyword">var</span> routes = {
+  invoke: { 
+    path: <span class="hljs-string">"/api/flo/:id/invoke"</span>,
+    method: <span class="hljs-string">"POST"</span>
+  },
+  flos: {
+    path: <span class="hljs-string">"/api/account/flos"</span>,
+    method: <span class="hljs-string">"POST"</span>
+  }
+};
+
+<span class="hljs-keyword">var</span> wrapAsyncFunction = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(fn, args)</span>{</span>
+  args = <span class="hljs-built_in">Array</span>.prototype.slice.call(args);
+  <span class="hljs-keyword">var</span> callback = args[args.length - <span class="hljs-number">1</span>];
+  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> callback !== <span class="hljs-string">"function"</span>){
+    <span class="hljs-keyword">var</span> deferred = Promise.defer();
+    args.push(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, data)</span>{</span>
+      <span class="hljs-keyword">if</span>(error)
+        deferred.reject(error);
+      <span class="hljs-keyword">else</span>
+        deferred.resolve(data);
+    });
+    fn.apply(fn, args);
+    <span class="hljs-keyword">return</span> deferred.promise;
+  }<span class="hljs-keyword">else</span>{
+    fn.apply(fn, args);
+  }
+};
+
+<span class="hljs-keyword">var</span> signData = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(accessSecret, data)</span>{</span>
+  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> data === <span class="hljs-string">"object"</span>)
+    data = <span class="hljs-built_in">JSON</span>.stringify(data);
+  <span class="hljs-keyword">return</span> crypto.createHmac(<span class="hljs-string">"sha256"</span>, accessSecret).update(data).digest(<span class="hljs-string">"hex"</span>);
+};
+
+<span class="hljs-keyword">var</span> addGetParameter = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, key, value)</span>{</span>
+  <span class="hljs-keyword">var</span> delimiter = path.indexOf(<span class="hljs-string">"?"</span>) &gt; -<span class="hljs-number">1</span> ? <span class="hljs-string">"&amp;"</span> : <span class="hljs-string">"?"</span>;
+  <span class="hljs-keyword">return</span> path += delimiter + key + <span class="hljs-string">"="</span> + value;
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <h2 id="constructor">Constructor</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>Create a new Azuqua client.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>This function first attempts to read accessKey and accessSecret data from environment variables.
+These can be set with ACCESS_KEY and ACCESS_SECRET. 
+It then attempts to read them from the function’s arguments.
+You can overwrite the environment variables this way if necessary, 
+although it’s not recommended to hard-code your account credentials.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-keyword">var</span> Azuqua = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(accessKey, accessSecret)</span>{</span>
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+
+  self.account = {};
+  <span class="hljs-keyword">if</span>(process.env.ACCESS_KEY)
+    self.account.accessKey = process.env.ACCESS_KEY;
+  <span class="hljs-keyword">if</span>(process.env.ACCESS_SECRET)
+    self.account.accessSecret = process.env.ACCESS_SECRET;
+  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> accessKey === <span class="hljs-string">"string"</span>)
+    self.account.accessKey = accessKey;
+  <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> accessSecret === <span class="hljs-string">"string"</span>)
+    self.account.accessSecret = accessSecret;
+
+  self.httpOptions = {
+    host: <span class="hljs-string">"apidev.azuqua.com"</span>,
+    port: <span class="hljs-number">80</span>,
+    headers: {
+      <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"application/json"</span>
+    }
+  };
+
+  self.client = <span class="hljs-keyword">new</span> RestJS.Rest({ protocol: <span class="hljs-string">"http"</span> });
+
+  self.makeRequest = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(options, params, callback)</span>{</span>
+    <span class="hljs-keyword">if</span>(!self.account || !self.account.accessKey || !self.account.accessSecret)
+      <span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Account information not found"</span>));
+    <span class="hljs-keyword">var</span> data = {};
+    _.each(self.httpOptions, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(value, key)</span>{</span>
+      options[key] = value;
+    });
+    <span class="hljs-keyword">var</span> hash = signData(self.account.accessSecret, params);
+    <span class="hljs-keyword">if</span>(options.method === <span class="hljs-string">"POST"</span>){
+      data.accessKey = self.account.accessKey;
+      data.data = params;
+      data.hash = hash;
+    }<span class="hljs-keyword">else</span>{
+      options.path = addGetParameter(options.path, <span class="hljs-string">"accessKey"</span>, self.account.accessKey);
+      options.path = addGetParameter(options.path, <span class="hljs-string">"data"</span>, 
+        <span class="hljs-built_in">encodeURIComponent</span>(<span class="hljs-keyword">typeof</span> params === <span class="hljs-string">"object"</span> ? <span class="hljs-built_in">JSON</span>.stringify(params) : params));
+      options.path = addGetParameter(options.path, <span class="hljs-string">"hash"</span>, hash);
+    }
+    data = <span class="hljs-built_in">JSON</span>.stringify(data);
+    options.headers[<span class="hljs-string">"Content-Length"</span>] = Buffer.byteLength(data);
+    self.client.request(options, data, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, resp)</span>{</span>
+      <span class="hljs-keyword">if</span>(error){
+        callback(error);
+      }<span class="hljs-keyword">else</span>{
+        <span class="hljs-keyword">try</span>{
+          resp.body = <span class="hljs-built_in">JSON</span>.parse(resp.body);
+        }<span class="hljs-keyword">catch</span>(e){
+          <span class="hljs-keyword">return</span> callback(resp);
+        }
+        <span class="hljs-keyword">if</span>(resp.body.error)
+          callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(resp.body.error));
+        <span class="hljs-keyword">else</span>
+          callback(<span class="hljs-literal">null</span>, resp.body);
+      }
+    });
+  };
+
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <h2 id="account-configuration">Account Configuration</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p><strong>loadConfig</strong></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>Read accessKey and accessSecret data from a .json file.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>Note: This function blocks. Use loadConfigAsync for the async variant.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Azuqua.prototype.loadConfig = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path)</span>{</span>
+  <span class="hljs-keyword">this</span>.account = <span class="hljs-built_in">require</span>(path);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p><strong>loadConfigAsync</strong></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>Asynchronously read accessKey and accessSecret data from a .json file.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Azuqua.prototype.loadConfigAsync = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(_path, _callback)</span>{</span>
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+  <span class="hljs-keyword">return</span> wrapAsyncFunction(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(path, callback)</span>{</span>
+    fs.readFile(path, { encoding: <span class="hljs-string">"utf8"</span> }, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, data)</span>{</span>
+      <span class="hljs-keyword">if</span>(error){
+        callback(error);
+      }<span class="hljs-keyword">else</span>{
+        <span class="hljs-keyword">try</span>{
+          data = <span class="hljs-built_in">JSON</span>.parse(data);
+        }<span class="hljs-keyword">catch</span>(e){
+          <span class="hljs-keyword">return</span> callback(e);
+        }
+        <span class="hljs-keyword">if</span>(data.accessKey &amp;&amp; data.accessSecret){
+          self.account = data;
+          callback(<span class="hljs-literal">null</span>, <span class="hljs-literal">true</span>);
+        }<span class="hljs-keyword">else</span>{
+          callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Invalid account credentials"</span>));
+        }
+      }
+    });
+  }, <span class="hljs-built_in">arguments</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <h2 id="api-functions">API Functions</h2>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p><strong>invoke</strong></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>Invoke a Flo identified by @flo with @data.
+@flo is a string representing the flo name.
+You can enumerate the output of flos() to see all flo names.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Azuqua.prototype.invoke = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(_flo, _data, _callback)</span>{</span>
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+  <span class="hljs-keyword">return</span> wrapAsyncFunction(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(flo, data, callback)</span>{</span>
+    <span class="hljs-keyword">if</span>(self.floMap[flo]){
+      <span class="hljs-keyword">var</span> options = routes.invoke;
+      options.path = options.path.replace(<span class="hljs-string">":id"</span>, self.floMap[flo]);
+      self.makeRequest(options, data, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, resp)</span>{</span>
+        <span class="hljs-keyword">if</span>(error)
+          callback(error);
+        <span class="hljs-keyword">else</span>
+          callback(<span class="hljs-literal">null</span>, resp.data);
+      });
+    }<span class="hljs-keyword">else</span>{
+      callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">"Flo not found. Try refreshing the flos cache"</span>));
+    }
+  }, <span class="hljs-built_in">arguments</span>);
+};</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p><strong>flos</strong></p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>List all flos for your organization.</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>Note: This caches the flos locally. To refresh them provide a truthy first parameter. </p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>Azuqua.prototype.flos = <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(_refresh, _callback)</span>{</span>
+  <span class="hljs-keyword">var</span> self = <span class="hljs-keyword">this</span>;
+  <span class="hljs-keyword">return</span> wrapAsyncFunction(<span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(refresh, callback)</span>{</span>
+    <span class="hljs-keyword">if</span>(<span class="hljs-keyword">typeof</span> refresh === <span class="hljs-string">"function"</span>){
+      callback = refresh;
+      refresh = <span class="hljs-literal">false</span>;
+    }
+    <span class="hljs-keyword">if</span>(self.floMap &amp;&amp; !refresh){
+      callback(<span class="hljs-literal">null</span>, self.floMap);
+    }<span class="hljs-keyword">else</span>{
+      self.makeRequest(routes.flos, {}, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(error, flos)</span>{</span>
+        <span class="hljs-keyword">if</span>(error){
+          callback(error);
+        }<span class="hljs-keyword">else</span>{
+          self.floMap = {};
+          <span class="hljs-keyword">var</span> out = [];
+          async.each(flos, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">(flo, cb)</span>{</span>
+            <span class="hljs-keyword">if</span>(!self.floMap[flo.name])
+              out.push(flo.name);
+            self.floMap[flo.name] = flo.alias;
+            cb();
+          }, <span class="hljs-function"><span class="hljs-keyword">function</span><span class="hljs-params">()</span>{</span>
+            callback(<span class="hljs-literal">null</span>, out);
+          });
+        }
+      });
+    }
+  }, <span class="hljs-built_in">arguments</span>);
+};
+
+
+module.exports = Azuqua;</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

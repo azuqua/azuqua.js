@@ -1,0 +1,35 @@
+{
+  "name": "Azuqua",
+  "description": "A node.js Azuqua API client library.",
+  "version": "0.1.0",
+  "author": "Azuqua",
+  "contributors": [
+    "Embke, Alec <alec@azuqua.com>"
+  ],
+  "licenses": [{
+    "type": "MIT",
+    "url": "http://opensource.org/licenses/mit-license.php"
+  }],
+  "scripts": {
+    "test": "node test/test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/azuqua/azuqua.git"
+  },
+  "dependencies": {
+    "async": "0.2.10",
+    "underscore": "1.6.0",
+    "bluebird": "1.1.1",
+    "restjs": "git://github.com/azuqua/restjs.git"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "docco": "*",
+    "grunt": "~0.4.2",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-jshint": "~0.8.0",
+    "grunt-mocha-test": "~0.9.4"
+  },
+  "main": "./azuqua"
+}
