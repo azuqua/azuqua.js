@@ -196,7 +196,6 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
 
 // Invoke a Flo identified by @flo with @data.
 // @flo is a string representing the flo name.
-// You can enumerate the output of flos() to see all flo names.
 Azuqua.prototype.invoke = function(_flo, _data, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, callback){
