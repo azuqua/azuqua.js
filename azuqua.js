@@ -76,7 +76,7 @@ var signData = function(accessSecret, data){
 
 var addGetParameter = function(path, key, value){
   var delimiter = path.indexOf("?") > -1 ? "&" : "?";
-  return path += delimiter + key + "=" + value;
+  return path + delimiter + key + "=" + value;
 };
 
 // Constructor
@@ -139,7 +139,7 @@ var Azuqua = function(accessKey, accessSecret){
         try{
           resp.body = JSON.parse(resp.body);
         }catch(e){
-          return callback(resp);
+          return callback(resp.body);
         }
         if(resp.body.error)
           callback(new Error(resp.body.error));
