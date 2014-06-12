@@ -46,7 +46,7 @@ var routes = {
   },
   flos: {
     path: "/api/account/flos",
-    method: "POST"
+    method: "GET"
   }
 };
 
@@ -68,15 +68,18 @@ var wrapAsyncFunction = function(fn, args){
   }
 };
 
-var signData = function(accessSecret, data){
-  if(typeof data === "object")
+var signData = function(accessSecret, data, verb, path, timestamp){
+  if(!data)
+    data = "";
+  else if(typeof data === "object")
     data = JSON.stringify(data);
-  return crypto.createHmac("sha256", accessSecret).update(data).digest("hex");
+  var meta = [verb.toLowerCase(), path, timestamp].join(":");
+  return crypto.createHmac("sha256", accessSecret).update(meta + data).digest("hex");
 };
 
 var addGetParameter = function(path, key, value){
   var delimiter = path.indexOf("?") > -1 ? "&" : "?";
-  return path + delimiter + key + "=" + value;
+  return path + delimiter + encodeURIComponent(key) + "=" + encodeURIComponent(value);
 };
 
 // Constructor
@@ -103,8 +106,8 @@ var Azuqua = function(accessKey, accessSecret){
     self.account.accessSecret = accessSecret;
 
   self.httpOptions = {
-    host: "api.azuqua.com",
-    port: 443,
+    host: "api.azuqua.com", 
+    port: 443, 
     headers: {
       "Content-Type": "application/json"
     }
@@ -115,24 +118,26 @@ var Azuqua = function(accessKey, accessSecret){
   self.makeRequest = function(options, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
-    var data = {};
     _.each(self.httpOptions, function(value, key){
       options[key] = value;
     });
-    var hash = signData(self.account.accessSecret, params);
-    if(options.method === "POST"){
-      data.accessKey = self.account.accessKey;
-      data.data = params;
-      data.hash = hash;
+    var timestamp = new Date().toISOString();
+    if(!params || Object.keys(params).length < 1)
+      params = "";
+    var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
+    if(options.method === "GET"){
+      _.each(params, function(key, value){
+        options.path = addGetParameter(options.path, key, encodeURIComponent(value));
+      });
     }else{
-      options.path = addGetParameter(options.path, "accessKey", self.account.accessKey);
-      options.path = addGetParameter(options.path, "data", 
-        encodeURIComponent(typeof params === "object" ? JSON.stringify(params) : params));
-      options.path = addGetParameter(options.path, "hash", hash);
+      params = JSON.stringify(params);
     }
-    data = JSON.stringify(data);
-    options.headers["Content-Length"] = Buffer.byteLength(data);
-    self.client.request(options, data, function(error, resp){
+    if(options.method === "POST")
+      options.headers["Content-Length"] = Buffer.byteLength(params);
+    options.headers["x-api-timestamp"] = timestamp;
+    options.headers["x-api-hash"] = hash;
+    options.headers["x-api-accessKey"] = self.account.accessKey;
+    self.client.request(options, params, function(error, resp){
       if(error){
         callback(error);
       }else{
@@ -199,17 +204,22 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
 Azuqua.prototype.invoke = function(_flo, _data, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, callback){
-    if(self.floMap[flo]){
+    if(self.floMap && self.floMap[flo]){
       var options = routes.invoke;
       options.path = options.path.replace(":id", self.floMap[flo]);
       self.makeRequest(options, data, function(error, resp){
         if(error)
           callback(error);
         else
-          callback(null, resp.data);
+          callback(null, resp);
       });
     }else{
-      callback(new Error("Flo not found. Try refreshing the flos cache"));
+      self.flos(true).then(function(){
+        if(self.floMap[flo])
+          self.invoke(flo, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
     }
   }, arguments);
 };
@@ -228,9 +238,9 @@ Azuqua.prototype.flos = function(_refresh, _callback){
       refresh = false;
     }
     if(self.floMap && !refresh){
-      callback(null, self.floMap);
+      callback(null, Object.keys(self.floMap));
     }else{
-      self.makeRequest(routes.flos, {}, function(error, flos){
+      self.makeRequest(routes.flos, null, function(error, flos){
         if(error){
           callback(error);
         }else{
