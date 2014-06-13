@@ -129,7 +129,7 @@ var Azuqua = function(accessKey, accessSecret){
     var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
     if(options.method === "GET"){
       _.each(params, function(key, value){
-        options.path = addGetParameter(options.path, key, encodeURIComponent(value));
+        options.path = addGetParameter(options.path, key, value);
       });
     }else{
       params = JSON.stringify(params);
