@@ -19,25 +19,27 @@ var async = require("async"),
 // In order to make API requests you will need both your accessKey and accessSecret.
 // These can be found on your account information page. 
 
-// <strong>
+// Since using an Azuqua client is the most secure way to invoke a flo 
+// any published flo can be invoked with the credentials provided by this client, regardless of the flo's security level.
+
 // All asynchronous functions can return a promise if you prefer that pattern.
 // By default when you call an asynchronous function and 
 // leave the callback undefined it will return a promise.
 // By default Azuqua uses <a href="https://github.com/petkaantonov/bluebird">bluebird</a>.
-// </strong>
 
-// Should you wish to write your own library that makes HTTP requests directly you will need to provide the following data:
+// Should you wish to write your own library that makes HTTP requests directly you will need to provide the following headers with each request:
 
-// `data: "stringified json object",` <br/>
-// `hash: "the hexidecimal string output of a HMAC of the data object signed by your accessSecret",` <br/>
-// `accessKey: "your access key"`
+// `x-api-accessKey: "your access key",` <br/>
+// `x-api-hash: "the hexidecimal string output of a HMAC-SHA256 of the data and some metadata signed by your accessSecret (see the signData function)",` <br/>
+// `x-api-timestamp: "an ISO timestamp of the current time"`
 
-// Please note that the API rate limits all clients by the maximum number of requests per second
+// Also note that the API rate limits all clients by the maximum number of requests per second
 // as determined by your account plan. By default this is 3 requests per second.
 
-// Flos are not directly invocable via their name on the API. To invoke a flo you first need to 
+// Flos are not directly invocable via their name. To invoke a flo you first need to 
 // get the alias for the flo. These can be found at the /api/account/flos route. This client maintains
 // an internal mapping between each flo name and its alias so you can invoke flos directly by their name.
+// Aliases are designed to be disposable so the flo maintainer can obfuscate endpoints as needed. 
 
 var routes = {
   invoke: { 
@@ -197,39 +199,11 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
 // API Functions
 // -------------
 
-// <strong>invoke</strong>
-
-// Invoke a Flo identified by @flo with @data.
-// @flo is a string representing the flo name.
-Azuqua.prototype.invoke = function(_flo, _data, _callback){
-  var self = this;
-  return wrapAsyncFunction(function(flo, data, callback){
-    if(self.floMap && self.floMap[flo]){
-      var options = routes.invoke;
-      options.path = options.path.replace(":id", self.floMap[flo]);
-      self.makeRequest(options, data, function(error, resp){
-        if(error)
-          callback(error);
-        else
-          callback(null, resp);
-      });
-    }else{
-      self.flos(true).then(function(){
-        if(self.floMap[flo])
-          self.invoke(flo, data, callback);
-        else
-          callback(new Error("Flo not found"));
-      }, callback);
-    }
-  }, arguments);
-};
-
-
 // <strong>flos</strong>
 
 // List all flos for your organization.
 
-// Note: This caches the flos locally. To refresh them provide a truthy first parameter. 
+// Note: This caches the flos locally. To refresh them provide a truthy first parameter.
 Azuqua.prototype.flos = function(_refresh, _callback){
   var self = this;
   return wrapAsyncFunction(function(refresh, callback){
@@ -260,5 +234,33 @@ Azuqua.prototype.flos = function(_refresh, _callback){
   }, arguments);
 };
 
+// <strong>invoke</strong>
+
+// Invoke a Flo identified by @flo with @data.
+// @flo is a string representing the flo name.
+// If you try to invoke a flo whose alias cannot be found the client will first attempt to refresh
+// the flos cache once. Failing that it will call the callback or reject the promise with an error.
+Azuqua.prototype.invoke = function(_flo, _data, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, callback){
+    if(self.floMap && self.floMap[flo]){
+      var options = routes.invoke;
+      options.path = options.path.replace(":id", self.floMap[flo]);
+      self.makeRequest(options, data, function(error, resp){
+        if(error)
+          callback(error);
+        else
+          callback(null, resp);
+      });
+    }else{
+      self.flos(true).then(function(){
+        if(self.floMap[flo])
+          self.invoke(flo, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  }, arguments);
+};
 
 module.exports = Azuqua;
