@@ -108,14 +108,14 @@ var Azuqua = function(accessKey, accessSecret){
     self.account.accessSecret = accessSecret;
 
   self.httpOptions = {
-    host: "localhost", 
-    port: 6072, 
+    host: "api.azuqua.com", 
+    port: 443, 
     headers: {
       "Content-Type": "application/json"
     }
   };
 
-  self.client = new RestJS({ protocol: "http" });
+  self.client = new RestJS({ protocol: "https" });
 
   self.makeRequest = function(options, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
