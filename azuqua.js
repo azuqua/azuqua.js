@@ -43,11 +43,11 @@ var async = require("async"),
 
 var routes = {
   invoke: { 
-    path: "/api/flo/:id/invoke",
+    path: "/flo/:id/invoke",
     method: "POST"
   },
   flos: {
-    path: "/api/account/flos",
+    path: "/account/flos",
     method: "GET"
   }
 };
@@ -108,14 +108,14 @@ var Azuqua = function(accessKey, accessSecret){
     self.account.accessSecret = accessSecret;
 
   self.httpOptions = {
-    host: "api.azuqua.com", 
-    port: 443, 
+    host: "localhost", 
+    port: 6072, 
     headers: {
       "Content-Type": "application/json"
     }
   };
 
-  self.client = new RestJS({ protocol: "https" });
+  self.client = new RestJS({ protocol: "http" });
 
   self.makeRequest = function(options, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
