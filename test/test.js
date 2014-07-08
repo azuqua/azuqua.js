@@ -155,7 +155,7 @@ describe("Client API function tests", function(){
 			it("Test flo should return the same starting data", function(done){
 				azuqua.invoke("httptohttp", { something: 1 }, function(error, data){
 					assert.isNull(error);
-					assert.typeOf(data, "object");
+					assert.ok(data);
 					done();
 				});
 			});
@@ -163,7 +163,15 @@ describe("Client API function tests", function(){
 			it("Should allow users to invoke flos with the alias", function(done){
 				azuqua.invoke("3f8ca2b96024cae4cdacf652b6a322", { something: 1 }, function(error, data){
 					assert.isNull(error);
-					assert.typeOf(data, "object");
+					assert.ok(data);
+					done();
+				});
+			});
+
+			it("Should allow users to force a flo invoke without using the cache", function(done){
+				azuqua.invoke("3f8ca2b96024cae4cdacf652b6a322", { something: 1 }, true, function(error, data){
+					assert.isNull(error);
+					assert.ok(data);
 					done();
 				});
 			});
@@ -222,7 +230,7 @@ describe("Client API function tests", function(){
 
 			it("Test flo should return the same starting data", function(done){
 				azuqua.invoke("httptohttp", { a: 1 }).then(function(data){
-					assert.typeOf(data, "object");
+					assert.ok(data);
 					done();
 				}, function(error){
 					assert.isNull(error);

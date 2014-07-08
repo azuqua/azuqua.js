@@ -244,10 +244,18 @@ Azuqua.prototype.flos = function(_refresh, _callback){
 // @flo is a string representing the flo name.
 // If you try to invoke a flo whose alias cannot be found the client will first attempt to refresh
 // the flos cache once. Failing that it will call the callback or reject the promise with an error.
-Azuqua.prototype.invoke = function(_flo, _data, _callback){
+// If the optional parameter @force is true then it will attempt to invoke the flo without
+// using the cache. Use this to avoid an extra network request if you already know the alias. 
+Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
   var self = this;
-  return wrapAsyncFunction(function(flo, data, callback){
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
     var alias = getAlias(self.floMap, flo);
+    if(!alias && force)
+      alias = flo;
     if(alias){
       var options = routes.invoke;
       options.path = options.path.replace(":id", alias);
