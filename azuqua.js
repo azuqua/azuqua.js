@@ -84,6 +84,10 @@ var addGetParameter = function(path, key, value){
   return path + delimiter + encodeURIComponent(key) + "=" + encodeURIComponent(value);
 };
 
+var getAlias = function(map, str){
+  return map[str] || _.find(map, function(v){ return v === str; });
+};
+
 // Constructor
 // -----------
 
@@ -243,19 +247,16 @@ Azuqua.prototype.flos = function(_refresh, _callback){
 Azuqua.prototype.invoke = function(_flo, _data, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, callback){
-    if(self.floMap && self.floMap[flo]){
+    var alias = getAlias(self.floMap, flo);
+    if(alias){
       var options = routes.invoke;
-      options.path = options.path.replace(":id", self.floMap[flo]);
-      self.makeRequest(options, data, function(error, resp){
-        if(error)
-          callback(error);
-        else
-          callback(null, resp);
-      });
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
     }else{
       self.flos(true).then(function(){
-        if(self.floMap[flo])
-          self.invoke(flo, data, callback);
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.invoke(alias, data, callback);
         else
           callback(new Error("Flo not found"));
       }, callback);

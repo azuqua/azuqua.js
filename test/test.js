@@ -4,8 +4,8 @@ var assert = require("chai").assert,
 
 // not real
 var testCredentials = {
-    accessKey: "ca40b699bfd9cb76d78e1c9bb4a191465093a461",
-    accessSecret: "eb1d531937fa94647f408636cb8f09f05344d0f0c3ac56e07ece508cedcecda3"
+    accessKey: "d9da0ea5efb58b22545f909e7754235bb9e7fad5",
+    accessSecret: "5686f7797cd31e366608b08fb9460a9926facacd876bb5f70cf872083a34f2cb"
 };
 
 // if you're looking at this file for examples on how to instantiate the azuqua client
@@ -153,7 +153,15 @@ describe("Client API function tests", function(){
 			});
 
 			it("Test flo should return the same starting data", function(done){
-				azuqua.invoke("HTTP to HTTP", { something: 1 }, function(error, data){
+				azuqua.invoke("httptohttp", { something: 1 }, function(error, data){
+					assert.isNull(error);
+					assert.typeOf(data, "object");
+					done();
+				});
+			});
+
+			it("Should allow users to invoke flos with the alias", function(done){
+				azuqua.invoke("3f8ca2b96024cae4cdacf652b6a322", { something: 1 }, function(error, data){
 					assert.isNull(error);
 					assert.typeOf(data, "object");
 					done();
@@ -162,13 +170,13 @@ describe("Client API function tests", function(){
 
 			it("Test flo should fail if the accessSecret is invalid", function(done){
 				azuqua.account.accessSecret = "1";
-				azuqua.invoke("HTTP to HTTP", { something: 1 }, function(error, data){
+				azuqua.invoke("httptohttp", { something: 1 }, function(error, data){
 					assert.typeOf(data, "undefined");
 					assert.isNotNull(error);
 					done();
 				});
 			});
-			
+
 		});
 
 
@@ -213,11 +221,10 @@ describe("Client API function tests", function(){
 			});
 
 			it("Test flo should return the same starting data", function(done){
-				azuqua.invoke("HTTP to HTTP", { a: 1 }).then(function(data){
+				azuqua.invoke("httptohttp", { a: 1 }).then(function(data){
 					assert.typeOf(data, "object");
 					done();
 				}, function(error){
-					// no-op
 					assert.isNull(error);
 					done();
 				});
@@ -225,8 +232,7 @@ describe("Client API function tests", function(){
 
 			it("Test flo should fail if the accessSecret is invalid", function(done){
 				azuqua.account.accessSecret = "1";
-				azuqua.invoke("HTTP to HTTP", { a: 1 }).then(function(data){
-					// no-op
+				azuqua.invoke("httptohttp", { a: 1 }).then(function(data){
 					assert.isNull(data);
 					done();
 				}, function(error){
