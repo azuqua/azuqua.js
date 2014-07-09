@@ -253,7 +253,7 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
       callback = force;
       force = false;
     }
-    var alias = getAlias(self.floMap, flo);
+    var alias = getAlias(self.floMap || {}, flo);
     if(!alias && force)
       alias = flo;
     if(alias){
