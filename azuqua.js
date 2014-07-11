@@ -257,7 +257,7 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
     if(!alias && force)
       alias = flo;
     if(alias){
-      var options = routes.invoke;
+      var options = _.extend({}, routes.invoke);
       options.path = options.path.replace(":id", alias);
       self.makeRequest(options, data, callback);
     }else{
