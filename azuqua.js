@@ -181,7 +181,12 @@ Azuqua.prototype.loadConfig = function(configPath){
 
 // Asynchronously read accessKey and accessSecret data from a .json file.
 Azuqua.prototype.loadConfigAsync = function(_path, _callback){
-  var self = this;
+  var self = this,
+      args = [].slice.call(arguments);
+
+  // Resolve the config path from the requiring parent's location if it's relative
+  args[0] = path.resolve(path.dirname(module.parent.filename), configPath);
+
   return wrapAsyncFunction(function(path, callback){
     fs.readFile(path, { encoding: "utf8" }, function(error, data){
       if(error){
@@ -200,7 +205,7 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
         }
       }
     });
-  }, arguments);
+  }, args);
 };
 
 // API Functions
