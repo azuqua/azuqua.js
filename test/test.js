@@ -77,7 +77,7 @@ describe("Client configuration tests", function(){
 	describe("Client configuration with loadConfig", function(){
 
 		var azuqua = new Azuqua();
-		azuqua.loadConfig("./test/account.json");
+		azuqua.loadConfig("./account.json");
 
 		it("Client should have a non-null accessKey of type string", function(){
 			assert.typeOf(azuqua.account.accessKey, "string");
@@ -96,7 +96,7 @@ describe("Client configuration tests", function(){
 
 		it("Client should asynchronously load configuration data", function(done){
 
-			azuqua.loadConfigAsync("./test/account.json", function(error, resp){
+			azuqua.loadConfigAsync("./account.json", function(error, resp){
 				assert.typeOf(azuqua.account.accessKey, "string");
 				assert.lengthOf(azuqua.account.accessKey, 40);
 				assert.typeOf(azuqua.account.accessSecret, "string");
