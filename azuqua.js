@@ -4,7 +4,8 @@ var async = require("async"),
   fs = require("fs"),
   crypto = require("crypto"),
   RestJS = require("restjs"),
-  Promise = require("bluebird");
+  Promise = require("bluebird"),
+  path = require("path");
 
   if(RestJS.Rest)
     RestJS = RestJS.Rest;
@@ -170,8 +171,10 @@ var Azuqua = function(accessKey, accessSecret){
 // Read accessKey and accessSecret data from a .json file.
 
 // Note: This function blocks. Use loadConfigAsync for the async variant.
-Azuqua.prototype.loadConfig = function(path){
-  this.account = require(path);
+Azuqua.prototype.loadConfig = function(configPath){
+  // Resolve the config path from the requiring parent's location if it's relative
+  configPath = path.resolve(path.dirname(module.parent.filename), configPath);
+  this.account = require(configPath);
 };
 
 // <strong>loadConfigAsync</strong>
