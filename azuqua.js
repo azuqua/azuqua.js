@@ -71,18 +71,18 @@ var wrapAsyncFunction = function(fn, args){
   }
 };
 
-var signData = function(accessSecret, data, verb, path, timestamp){
+var signData = function(accessSecret, data, verb, _path, timestamp){
   if(!data)
     data = "";
   else if(typeof data === "object")
     data = JSON.stringify(data);
-  var meta = [verb.toLowerCase(), path, timestamp].join(":");
+  var meta = [verb.toLowerCase(), _path, timestamp].join(":");
   return crypto.createHmac("sha256", accessSecret).update(meta + data).digest("hex");
 };
 
-var addGetParameter = function(path, key, value){
-  var delimiter = path.indexOf("?") > -1 ? "&" : "?";
-  return path + delimiter + encodeURIComponent(key) + "=" + encodeURIComponent(value);
+var addGetParameter = function(_path, key, value){
+  var delimiter = _path.indexOf("?") > -1 ? "&" : "?";
+  return _path + delimiter + encodeURIComponent(key) + "=" + encodeURIComponent(value);
 };
 
 var getAlias = function(map, str){
@@ -171,10 +171,10 @@ var Azuqua = function(accessKey, accessSecret){
 // Read accessKey and accessSecret data from a .json file.
 
 // Note: This function blocks. Use loadConfigAsync for the async variant.
-Azuqua.prototype.loadConfig = function(configPath){
+Azuqua.prototype.loadConfig = function(_path){
   // Resolve the config path from the requiring parent's location if it's relative
-  configPath = path.resolve(path.dirname(module.parent.filename), configPath);
-  this.account = require(configPath);
+  _path = path.resolve(path.dirname(module.parent.filename), _path);
+  this.account = require(_path);
 };
 
 // <strong>loadConfigAsync</strong>
@@ -182,13 +182,13 @@ Azuqua.prototype.loadConfig = function(configPath){
 // Asynchronously read accessKey and accessSecret data from a .json file.
 Azuqua.prototype.loadConfigAsync = function(_path, _callback){
   var self = this,
-      args = [].slice.call(arguments);
+      args = Array.prototype.slice.call(arguments);
 
   // Resolve the config path from the requiring parent's location if it's relative
-  args[0] = path.resolve(path.dirname(module.parent.filename), configPath);
+  args[0] = path.resolve(path.dirname(module.parent.filename), _path);
 
-  return wrapAsyncFunction(function(path, callback){
-    fs.readFile(path, { encoding: "utf8" }, function(error, data){
+  return wrapAsyncFunction(function(_path, callback){
+    fs.readFile(_path, { encoding: "utf8" }, function(error, data){
       if(error){
         callback(error);
       }else{
