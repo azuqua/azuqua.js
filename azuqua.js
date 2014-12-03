@@ -99,7 +99,7 @@ var getAlias = function(map, str){
 // It then attempts to read them from the function's arguments.
 // You can overwrite the environment variables this way if necessary, 
 // although it's not recommended to hard-code your account credentials.
-var Azuqua = function(accessKey, accessSecret){
+var Azuqua = function(accessKey, accessSecret, options){
   var self = this;
 
   self.account = {};
@@ -119,6 +119,11 @@ var Azuqua = function(accessKey, accessSecret){
       "Content-Type": "application/json"
     }
   };
+
+  if(typeof options === "object"){
+    _.extend(self.httpOptions, options);
+  }
+
 
   self.client = new RestJS({ protocol: "https" });
 
