@@ -125,7 +125,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   if(typeof httpOptions === "object"){
     if(httpOptions.protocol){
       protocol = httpOptions.protocol;
-      delete httpOptions.protocol
+      delete httpOptions.protocol;
     }
     _.extend(self.httpOptions, httpOptions);
   }
@@ -141,6 +141,8 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     var timestamp = new Date().toISOString();
     if(!params || Object.keys(params).length < 1)
       params = "";
+    else
+      params = JSON.parse(JSON.stringify(params));
     var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
     if(options.method === "GET"){
       _.each(params, function(key, value){
@@ -164,7 +166,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
           return callback(resp.body);
         }
         if(resp.body.error)
-          callback(new Error(resp.body.error));
+          callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
         else
           callback(null, resp.body);
       }
