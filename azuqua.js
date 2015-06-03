@@ -77,7 +77,7 @@ var signData = function(accessSecret, data, verb, _path, timestamp){
   else if(typeof data === "object")
     data = JSON.stringify(data);
   var meta = [verb.toLowerCase(), _path, timestamp].join(":");
-  return crypto.createHmac("sha256", accessSecret).update(Buffer(meta + data, 'utf-8')).digest("hex");
+  return crypto.createHmac("sha256", accessSecret).update(new Buffer(meta + data, 'utf-8')).digest("hex");
 };
 
 var addGetParameter = function(_path, key, value){
