@@ -77,7 +77,7 @@ var signData = function(accessSecret, data, verb, _path, timestamp){
   else if(typeof data === "object")
     data = JSON.stringify(data);
   var meta = [verb.toLowerCase(), _path, timestamp].join(":");
-  return crypto.createHmac("sha256", accessSecret).update(meta + data).digest("hex");
+  return crypto.createHmac("sha256", accessSecret).update(Buffer(meta + data, 'utf-8')).digest("hex");
 };
 
 var addGetParameter = function(_path, key, value){
@@ -131,6 +131,13 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   }
 
   self.client = new RestJS({ protocol: protocol });
+  
+  self.signData = function(data, verb, path, timestamp) {
+    if(!self.account.accessSecret)
+      throw new Error("Account information not found");
+    
+    return signData(self.account.accessSecret, data, verb, path, timestamp);
+  };
 
   self.makeRequest = function(options, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
