@@ -26,18 +26,20 @@
     "url": "git://github.com/azuqua/azuqua.js"
   },
   "dependencies": {
-    "async": "~0.2.10",
-    "underscore": "~1.6.0",
+    "async": "^1.4.2",
     "bluebird": "~1.1.1",
-    "restjs": "git://github.com/azuqua/restjs.git"
+    "lodash": "^3.10.1",
+    "request": "^2.61.0"
   },
   "devDependencies": {
-    "chai": "*",
-    "docco": "*",
+    "chai": "^3.2.0",
+    "docco": "^0.7.0",
     "grunt": "~0.4.2",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-jshint": "~0.8.0",
-    "grunt-mocha-test": "~0.9.4"
+    "grunt-mocha-test": "~0.9.4",
+    "mocha": "^2.3.2",
+    "sinon": "^1.16.1"
   },
   "main": "./azuqua"
 }

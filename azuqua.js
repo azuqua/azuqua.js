@@ -1,14 +1,12 @@
 
 var async = require("async"),
-  _ = require("underscore"),
+  _ = require("lodash"),
   fs = require("fs"),
   crypto = require("crypto"),
-  RestJS = require("restjs"),
+  request = require("request"),
   Promise = require("bluebird"),
   path = require("path");
 
-  if(RestJS.Rest)
-    RestJS = RestJS.Rest;
 
 // Azuqua Node.js Client Library
 // -----------------------------
@@ -53,10 +51,6 @@ var routes = {
   }
 };
 
-function deepDataCopy(target) {
-  return JSON.parse(JSON.stringify(target));
-}
-
 var wrapAsyncFunction = function(fn, args){
   args = Array.prototype.slice.call(args);
   var callback = args[args.length - 1];
@@ -92,6 +86,10 @@ var addGetParameter = function(_path, key, value){
 var getAlias = function(map, str){
   return map[str] || _.find(map, function(v){ return v === str; });
 };
+
+var makeUrl = function(protocol, host, path, port){
+  return protocol + "://" + host + (port ? ":" + port : "") + path;
+}; 
 
 // Constructor
 // -----------
@@ -133,25 +131,19 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     }
     _.extend(self.httpOptions, httpOptions);
   }
-  Object.freeze(self.httpOptions)
-  self.client = new RestJS({ protocol: protocol });
 
   self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
-    var options = deepDataCopy(externalOptions);
-    _.each(self.httpOptions, function(value, key){
-      if (typeof value === "object") {
-        options[key] = deepDataCopy(value);
-      } else {
-        options[key] = value;
-      }
-    });
+
+    var options = _.defaultsDeep(_.cloneDeep(externalOptions), _.cloneDeep(self.httpOptions));
+
     var timestamp = new Date().toISOString();
     if(!params || Object.keys(params).length < 1)
       params = "";
     else
-      params = JSON.parse(JSON.stringify(params));
+      params = _.cloneDeep(params);
+
     var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
     if(options.method === "GET"){
       _.each(params, function(key, value){
@@ -159,22 +151,33 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
       });
     }else{
       params = JSON.stringify(params);
+      options.body = params;
     }
     if(options.method === "POST")
       options.headers["Content-Length"] = Buffer.byteLength(params);
     options.headers["x-api-timestamp"] = timestamp;
     options.headers["x-api-hash"] = hash;
     options.headers["x-api-accessKey"] = self.account.accessKey;
-    self.client.request(options, params, function(error, resp){
+    
+    if(options.host && options.path && !options.url){
+      options.url = makeUrl(self.protocol, options.host, options.path, options.port);
+      delete options.host;
+      delete options.path;
+      delete options.port;
+    }
+
+    request(options, function(error, resp){
       if(error){
         callback(error);
       }else{
-        try{
-          resp.body = JSON.parse(resp.body);
-        }catch(e){
-          return callback(resp.body);
+        if(resp.body && typeof resp.body === "string"){
+          try{
+            resp.body = JSON.parse(resp.body);
+          }catch(e){
+            return callback(resp.body);
+          }
         }
-        if(resp.body.error)
+        if(resp.body && resp.body.error)
           callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
         else
           callback(null, resp.body);
