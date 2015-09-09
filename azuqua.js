@@ -338,7 +338,7 @@ Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
           callback(new Error("Flo not found"));
       }, callback);
     }
-  });
+  }, arguments);
 };
 
 module.exports = Azuqua;
