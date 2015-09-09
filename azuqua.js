@@ -57,6 +57,10 @@ var routes = {
   }
 };
 
+function deepDataCopy(target) {
+  return JSON.parse(JSON.stringify(target));
+}
+
 var wrapAsyncFunction = function(fn, args){
   args = Array.prototype.slice.call(args);
   var callback = args[args.length - 1];
@@ -133,7 +137,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     }
     _.extend(self.httpOptions, httpOptions);
   }
-
+  Object.freeze(self.httpOptions)
   self.client = new RestJS({ protocol: protocol });
   
   self.signData = function(data, verb, path, timestamp) {
@@ -143,11 +147,16 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     return signData(self.account.accessSecret, data, verb, path, timestamp);
   };
 
-  self.makeRequest = function(options, params, callback){
+  self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
+    var options = deepDataCopy(externalOptions);
     _.each(self.httpOptions, function(value, key){
-      options[key] = value;
+      if (typeof value === "object") {
+        options[key] = deepDataCopy(value);
+      } else {
+        options[key] = value;
+      }
     });
     var timestamp = new Date().toISOString();
     if(!params || Object.keys(params).length < 1)
@@ -333,3 +342,4 @@ Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
 };
 
 module.exports = Azuqua;
+
