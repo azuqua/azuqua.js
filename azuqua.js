@@ -50,6 +50,10 @@ var routes = {
   flos: {
     path: "/account/flos",
     method: "GET"
+  },
+  schedule: {
+    path: "/flo/:id/schedule",
+    method: "POST"
   }
 };
 
@@ -297,6 +301,35 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
       }, callback);
     }
   }, arguments);
+};
+
+Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+
+    var alias = getAlias(self.floMap || {}, flo);
+    if(!alias && force)
+      alias = flo;
+    
+    if(alias){
+      var options = _.extend({}, routes.schedule);
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
+    }
+    else {
+      self.flos(true).then(function(){
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.schedule(alias, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  });
 };
 
 module.exports = Azuqua;
