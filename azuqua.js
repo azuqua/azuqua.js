@@ -165,6 +165,11 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
       delete options.path;
       delete options.port;
     }
+    
+    if(options.method.toLowerCase() === "get" && options.headers){
+      delete options.headers["Content-Type"];
+      delete options.headers["Content-Length"];
+    }
 
     request(options, function(error, resp){
       if(error){
