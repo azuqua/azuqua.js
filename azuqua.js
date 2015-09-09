@@ -50,8 +50,16 @@ var routes = {
   flos: {
     path: "/account/flos",
     method: "GET"
+  },
+  schedule: {
+    path: "/flo/:id/schedule",
+    method: "POST"
   }
 };
+
+function deepDataCopy(target) {
+  return JSON.parse(JSON.stringify(target));
+}
 
 var wrapAsyncFunction = function(fn, args){
   args = Array.prototype.slice.call(args);
@@ -129,7 +137,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     }
     _.extend(self.httpOptions, httpOptions);
   }
-
+  Object.freeze(self.httpOptions)
   self.client = new RestJS({ protocol: protocol });
   
   self.signData = function(data, verb, path, timestamp) {
@@ -139,11 +147,16 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     return signData(self.account.accessSecret, data, verb, path, timestamp);
   };
 
-  self.makeRequest = function(options, params, callback){
+  self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
+    var options = deepDataCopy(externalOptions);
     _.each(self.httpOptions, function(value, key){
-      options[key] = value;
+      if (typeof value === "object") {
+        options[key] = deepDataCopy(value);
+      } else {
+        options[key] = value;
+      }
     });
     var timestamp = new Date().toISOString();
     if(!params || Object.keys(params).length < 1)
@@ -299,4 +312,34 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
   }, arguments);
 };
 
+Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+
+    var alias = getAlias(self.floMap || {}, flo);
+    if(!alias && force)
+      alias = flo;
+    
+    if(alias){
+      var options = _.extend({}, routes.schedule);
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
+    }
+    else {
+      self.flos(true).then(function(){
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.schedule(alias, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  });
+};
+
 module.exports = Azuqua;
+
