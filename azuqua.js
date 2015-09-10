@@ -54,6 +54,10 @@ var routes = {
   schedule: {
     path: "/flo/:id/schedule",
     method: "POST"
+  },
+  retry: {
+    path: "/flo/:id/retry",
+    method: "POST"
   }
 };
 
@@ -275,6 +279,25 @@ Azuqua.prototype.flos = function(_refresh, _callback){
         }
       });
     }
+  }, arguments);
+};
+
+// <strong>Retry</strong>
+
+// Retry a Flo identified by @instance_id
+// @instance_id is a string representing a particula execution of a flo.
+// @data is expected to be an object with the org and flo properties set to the 
+// original parent flo's id as well as the owner's org id. 
+Azuqua.prototype.retry = function(_flo, _data, _force, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+    var options = _.extend({}, routes.retry);
+    options.path = options.path.replace(":id", flo);
+    self.makeRequest(options, data, callback);
   }, arguments);
 };
 
