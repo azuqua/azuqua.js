@@ -110,6 +110,40 @@ describe("Client configuration tests", function(){
 
 });
 
+describe("Signing function", function() {
+	describe("With latin charset only", function(){
+		var azuqua = new Azuqua(testCredentials.accessKey, testCredentials.accessSecret);
+		
+		var hash = azuqua.signData("Hello", "POST", "path", "timestamp");
+			
+		it("Hash should match", function(){
+			assert.equal(hash, "59423b18b5800daaf3ef9eb68b9a35501acfedd5ed0b0de7d4fd9b4c360fed3d");
+		});
+	});
+	
+	describe("With UTF-8 characters", function(){
+		var azuqua = new Azuqua(testCredentials.accessKey, testCredentials.accessSecret);
+		
+		var hash = azuqua.signData("你好", "POST", "path", "timestamp");
+		
+		it("Hash should match", function(){
+			assert.equal(hash, "2424f6a6ac168badb8096aae779a6c91287f2e20c19a49598c6c679796b0753a");
+		});
+	});
+	
+	describe("With invalid configuration", function(){
+		var azuqua = new Azuqua(testCredentials.accessKey, '');
+		
+		var fn = function() {
+			return azuqua.signData("Hello", "POST", "path", "timestamp");
+		};
+		
+		it("Should throw Error", function(){
+			assert.throw(fn, Error);
+		});
+	});
+});
+
 describe("Client API function tests", function(){
 	this.timeout(60000);
 

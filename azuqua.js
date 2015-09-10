@@ -50,6 +50,14 @@ var routes = {
   flos: {
     path: "/account/flos",
     method: "GET"
+  },
+  schedule: {
+    path: "/flo/:id/schedule",
+    method: "POST"
+  },
+  retry: {
+    path: "/flo/:id/retry",
+    method: "POST"
   }
 };
 
@@ -81,7 +89,7 @@ var signData = function(accessSecret, data, verb, _path, timestamp){
   else if(typeof data === "object")
     data = JSON.stringify(data);
   var meta = [verb.toLowerCase(), _path, timestamp].join(":");
-  return crypto.createHmac("sha256", accessSecret).update(meta + data).digest("hex");
+  return crypto.createHmac("sha256", accessSecret).update(new Buffer(meta + data, 'utf-8')).digest("hex");
 };
 
 var addGetParameter = function(_path, key, value){
@@ -135,6 +143,13 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   }
   Object.freeze(self.httpOptions)
   self.client = new RestJS({ protocol: protocol });
+  
+  self.signData = function(data, verb, path, timestamp) {
+    if(!self.account.accessSecret)
+      throw new Error("Account information not found");
+    
+    return signData(self.account.accessSecret, data, verb, path, timestamp);
+  };
 
   self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
@@ -267,6 +282,25 @@ Azuqua.prototype.flos = function(_refresh, _callback){
   }, arguments);
 };
 
+// <strong>Retry</strong>
+
+// Retry a Flo identified by @instance_id
+// @instance_id is a string representing a particula execution of a flo.
+// @data is expected to be an object with the org and flo properties set to the 
+// original parent flo's id as well as the owner's org id. 
+Azuqua.prototype.retry = function(_flo, _data, _force, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+    var options = _.extend({}, routes.retry);
+    options.path = options.path.replace(":id", flo);
+    self.makeRequest(options, data, callback);
+  }, arguments);
+};
+
 // <strong>invoke</strong>
 
 // Invoke a Flo identified by @flo with @data.
@@ -301,4 +335,34 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
   }, arguments);
 };
 
+Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+
+    var alias = getAlias(self.floMap || {}, flo);
+    if(!alias && force)
+      alias = flo;
+    
+    if(alias){
+      var options = _.extend({}, routes.schedule);
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
+    }
+    else {
+      self.flos(true).then(function(){
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.schedule(alias, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  }, arguments);
+};
+
 module.exports = Azuqua;
+
