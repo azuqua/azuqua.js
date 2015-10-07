@@ -143,18 +143,20 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   }
   Object.freeze(self.httpOptions)
   self.client = new RestJS({ protocol: protocol });
-  
+
   self.signData = function(data, verb, path, timestamp) {
     if(!self.account.accessSecret)
       throw new Error("Account information not found");
-    
+
     return signData(self.account.accessSecret, data, verb, path, timestamp);
   };
 
   self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
+
     var options = deepDataCopy(externalOptions);
+
     _.each(self.httpOptions, function(value, key){
       if (typeof value === "object") {
         options[key] = deepDataCopy(value);
@@ -162,37 +164,51 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
         options[key] = value;
       }
     });
+
     var timestamp = new Date().toISOString();
-    if(!params || Object.keys(params).length < 1)
-      params = "";
-    else
+
+    if(!params || Object.keys(params).length < 1) {
+      params = options.method === 'GET' ? "" : {};
+    }
+    else {
       params = JSON.parse(JSON.stringify(params));
+    }
+
     var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
     if(options.method === "GET"){
       _.each(params, function(key, value){
         options.path = addGetParameter(options.path, key, value);
       });
-    }else{
+    }
+    else{
       params = JSON.stringify(params);
     }
-    if(options.method === "POST")
+
+    if(options.method === "POST") {
       options.headers["Content-Length"] = Buffer.byteLength(params);
+    }
+
     options.headers["x-api-timestamp"] = timestamp;
     options.headers["x-api-hash"] = hash;
     options.headers["x-api-accessKey"] = self.account.accessKey;
     self.client.request(options, params, function(error, resp){
       if(error){
         callback(error);
-      }else{
+      }
+      else{
         try{
           resp.body = JSON.parse(resp.body);
-        }catch(e){
+        }
+        catch(e){
           return callback(resp.body);
         }
-        if(resp.body.error)
+
+        if(resp.body.error || resp.statusCode >= 400) {
           callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
-        else
+        }
+        else {
           callback(null, resp.body);
+        }
       }
     });
   };

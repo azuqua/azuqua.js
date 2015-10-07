@@ -16,3 +16,4 @@ node_modules
 
 .idea
 config.json
+test.js
