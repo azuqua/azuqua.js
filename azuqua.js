@@ -208,7 +208,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
           callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
         }
         else if (resp.statusCode >= 400) {
-          callback(new Error(resp.body || resp.statusCode);
+          callback(new Error(resp.body || resp.statusCode));
         }
         else {
           callback(null, resp.body);
