@@ -37,7 +37,8 @@ var async = require("async"),
 // Also note that the API rate limits all clients by the maximum number of requests per second
 // as determined by your account plan. By default this is 3 requests per second.
 
-// Flos are not directly invocable via their name. To invoke a flo you first need to 
+// Flos are not directly invocable via their name. To invoke a flo you fi
+// rst need to
 // get the alias for the flo. These can be found at the /api/account/flos route. This client maintains
 // an internal mapping between each flo name and its alias so you can invoke flos directly by their name.
 // Aliases are designed to be disposable so the flo maintainer can obfuscate endpoints as needed. 
@@ -207,8 +208,8 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
           callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
         }
         else if (resp.statusCode >= 400) {
-          callback(resp.body || {
-              error: resp.statusCode
+          callback({
+              error: resp.body || resp.statusCode
             });
         }
         else {
