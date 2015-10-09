@@ -37,7 +37,8 @@ var async = require("async"),
 // Also note that the API rate limits all clients by the maximum number of requests per second
 // as determined by your account plan. By default this is 3 requests per second.
 
-// Flos are not directly invocable via their name. To invoke a flo you first need to 
+// Flos are not directly invocable via their name. To invoke a flo you fi
+// rst need to
 // get the alias for the flo. These can be found at the /api/account/flos route. This client maintains
 // an internal mapping between each flo name and its alias so you can invoke flos directly by their name.
 // Aliases are designed to be disposable so the flo maintainer can obfuscate endpoints as needed. 
@@ -50,6 +51,14 @@ var routes = {
   flos: {
     path: "/account/flos",
     method: "GET"
+  },
+  schedule: {
+    path: "/flo/:id/schedule",
+    method: "POST"
+  },
+  retry: {
+    path: "/flo/:id/retry",
+    method: "POST"
   }
 };
 
@@ -81,7 +90,7 @@ var signData = function(accessSecret, data, verb, _path, timestamp){
   else if(typeof data === "object")
     data = JSON.stringify(data);
   var meta = [verb.toLowerCase(), _path, timestamp].join(":");
-  return crypto.createHmac("sha256", accessSecret).update(meta + data).digest("hex");
+  return crypto.createHmac("sha256", accessSecret).update(new Buffer(meta + data, 'utf-8')).digest("hex");
 };
 
 var addGetParameter = function(_path, key, value){
@@ -136,10 +145,19 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   Object.freeze(self.httpOptions)
   self.client = new RestJS({ protocol: protocol });
 
+  self.signData = function(data, verb, path, timestamp) {
+    if(!self.account.accessSecret)
+      throw new Error("Account information not found");
+
+    return signData(self.account.accessSecret, data, verb, path, timestamp);
+  };
+
   self.makeRequest = function(externalOptions, params, callback){
     if(!self.account || !self.account.accessKey || !self.account.accessSecret)
       return callback(new Error("Account information not found"));
+
     var options = deepDataCopy(externalOptions);
+
     _.each(self.httpOptions, function(value, key){
       if (typeof value === "object") {
         options[key] = deepDataCopy(value);
@@ -147,37 +165,56 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
         options[key] = value;
       }
     });
+
     var timestamp = new Date().toISOString();
-    if(!params || Object.keys(params).length < 1)
-      params = "";
-    else
+
+    if(!params || Object.keys(params).length < 1) {
+      params = options.method === 'GET' ? "" : {};
+    }
+    else {
       params = JSON.parse(JSON.stringify(params));
+    }
+
     var hash = signData(self.account.accessSecret, params, options.method, options.path, timestamp);
     if(options.method === "GET"){
       _.each(params, function(key, value){
         options.path = addGetParameter(options.path, key, value);
       });
-    }else{
+    }
+    else{
       params = JSON.stringify(params);
     }
-    if(options.method === "POST")
+
+    if(options.method === "POST") {
       options.headers["Content-Length"] = Buffer.byteLength(params);
+    }
+
     options.headers["x-api-timestamp"] = timestamp;
     options.headers["x-api-hash"] = hash;
     options.headers["x-api-accessKey"] = self.account.accessKey;
     self.client.request(options, params, function(error, resp){
       if(error){
         callback(error);
-      }else{
+      }
+      else{
         try{
           resp.body = JSON.parse(resp.body);
-        }catch(e){
+        }
+        catch(e){
           return callback(resp.body);
         }
-        if(resp.body.error)
+
+        if(resp.body.error ) {
           callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
-        else
+        }
+        else if (resp.statusCode >= 400) {
+          callback({
+              error: resp.body || resp.statusCode
+            });
+        }
+        else {
           callback(null, resp.body);
+        }
       }
     });
   };
@@ -267,6 +304,25 @@ Azuqua.prototype.flos = function(_refresh, _callback){
   }, arguments);
 };
 
+// <strong>Retry</strong>
+
+// Retry a Flo identified by @instance_id
+// @instance_id is a string representing a particula execution of a flo.
+// @data is expected to be an object with the org and flo properties set to the 
+// original parent flo's id as well as the owner's org id. 
+Azuqua.prototype.retry = function(_flo, _data, _force, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+    var options = _.extend({}, routes.retry);
+    options.path = options.path.replace(":id", flo);
+    self.makeRequest(options, data, callback);
+  }, arguments);
+};
+
 // <strong>invoke</strong>
 
 // Invoke a Flo identified by @flo with @data.
@@ -301,4 +357,34 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
   }, arguments);
 };
 
+Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+
+    var alias = getAlias(self.floMap || {}, flo);
+    if(!alias && force)
+      alias = flo;
+    
+    if(alias){
+      var options = _.extend({}, routes.schedule);
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
+    }
+    else {
+      self.flos(true).then(function(){
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.schedule(alias, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  }, arguments);
+};
+
 module.exports = Azuqua;
+
