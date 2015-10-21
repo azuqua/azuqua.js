@@ -371,7 +371,7 @@ Azuqua.prototype.inject = function(_flo, _data, _force, _callback){
       callback = force;
       force = false;
     }
-    console.log("making inject call");
+    
     var alias = getAlias(self.floMap || {}, flo);
     if(!alias && force)
       alias = flo;
