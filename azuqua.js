@@ -48,6 +48,10 @@ var routes = {
     path: "/flo/:id/invoke",
     method: "POST"
   },
+  inject: { 
+    path: "/flo/:id/inject",
+    method: "POST"
+  },
   flos: {
     path: "/account/flos",
     method: "GET"
@@ -345,6 +349,41 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
         alias = getAlias(self.floMap, flo);
         if(alias)
           self.invoke(alias, data, callback);
+        else
+          callback(new Error("Flo not found"));
+      }, callback);
+    }
+  }, arguments);
+};
+
+// <strong>inject</strong>
+
+// Inject and run a Flo identified by @flo with @data mocking the first step.
+// @flo is a string representing the flo name.
+// If you try to inject a flo whose alias cannot be found the client will first attempt to refresh
+// the flos cache once. Failing that it will call the callback or reject the promise with an error.
+// If the optional parameter @force is true then it will attempt to inject the flo without
+// using the cache. Use this to avoid an extra network request if you already know the alias. 
+Azuqua.prototype.inject = function(_flo, _data, _force, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(flo, data, force, callback){
+    if(typeof force === "function" && !callback){
+      callback = force;
+      force = false;
+    }
+    
+    var alias = getAlias(self.floMap || {}, flo);
+    if(!alias && force)
+      alias = flo;
+    if(alias){
+      var options = _.extend({}, routes.inject);
+      options.path = options.path.replace(":id", alias);  
+      self.makeRequest(options, data, callback);
+    }else{
+      self.flos(true).then(function(){
+        alias = getAlias(self.floMap, flo);
+        if(alias)
+          self.inject(alias, data, callback);
         else
           callback(new Error("Flo not found"));
       }, callback);
