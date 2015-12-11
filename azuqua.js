@@ -63,6 +63,10 @@ var routes = {
   retry: {
     path: "/flo/:id/retry",
     method: "POST"
+  },
+  inputs: {
+    path: "/flo/:id/inputs",
+    method: "GET"
   }
 };
 
@@ -352,6 +356,52 @@ Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
         else
           callback(new Error("Flo not found"));
       }, callback);
+    }
+  }, arguments);
+};
+
+/**
+ *
+ * @param _flo - flo alias or flo name
+ * @param _force - If true then it will attempt to retrieve the inputs of the flo without using the cache
+ * @param _callback
+ */
+Azuqua.prototype.inputs = function (_flo, _force, _callback) {
+  var self = this;
+  return wrapAsyncFunction(function (flo, force, callback) {
+    if (typeof force === "function" && !callback) {
+      callback = force;
+      force = false;
+    }
+
+    var alias = null;
+    try {
+      alias = getAlias(self.floMap || {}, flo);
+    } catch (e) {
+      return callback(e);
+    }
+
+    if (!alias && force) {
+      alias = flo;
+    }
+
+    if (alias) {
+      var options = _.extend({}, routes.inputs);
+      options.path = options.path.replace(":id", alias);
+      self.makeRequest(options, data, callback);
+    }
+    else {
+      self.flos(true)
+        .then(function () {
+          alias = getAlias(self.floMap, flo);
+          if (alias) {
+            self.inputs(alias, force, callback);
+          }
+          else {
+            callback(new Error("Flo not found"));
+          }
+        })
+        .catch(callback);
     }
   }, arguments);
 };
