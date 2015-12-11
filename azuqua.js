@@ -388,7 +388,7 @@ Azuqua.prototype.inputs = function (_flo, _force, _callback) {
     if (alias) {
       var options = _.extend({}, routes.inputs);
       options.path = options.path.replace(":id", alias);
-      self.makeRequest(options, data, callback);
+      self.makeRequest(options, "", callback);
     }
     else {
       self.flos(true)
