@@ -296,7 +296,7 @@ Azuqua.prototype.flos = function(_refresh, _callback){
           async.each(flos, function(flo, cb){
             if(!self.floMap[flo.name])
               out.push(flo.name);
-            self.floMap[flo.name] = flo.alias;
+            self.floMap[flo.name] = self.floMap[flo.alias] = flo.alias;
             cb();
           }, function(){
             callback(null, out);
