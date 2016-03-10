@@ -53,7 +53,7 @@ var routes = {
     method: "POST"
   },
   flos: {
-    path: "cd ",
+    path: "/account/flos",
     method: "GET"
   },
   schedule: {
@@ -287,7 +287,7 @@ Azuqua.prototype.getFlos = function(_refresh, _callback){
             id : flo.id,
             alias: flo.alias,
             name: flo.name,
-            description: flo.description
+            description: flo.description,
             org_id : flo.org_id,
             active: flo.active,
             published: flo.published
