@@ -275,9 +275,9 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
 // <strong>flos</strong>
 
 // List all flos avaliable to your access key and secret.
-Azuqua.prototype.getFlos = function(_refresh, _callback){
+Azuqua.prototype.getFlos = function (_callback){
   var self = this;
-  return wrapAsyncFunction(function(refresh, callback){
+  return wrapAsyncFunction(function (callback) {
     self.makeRequest(routes.flos, null, function(error, flos){
       if(error){
         callback(error);
