@@ -18,13 +18,13 @@ var async = require("async"),
 // For full API documentation please visit <a href="//developer.azuqua.com">developer.azuqua.com</a>.
 
 // In order to make API requests you will need both your accessKey and accessSecret.
-// These can be found on your account information page. 
+// These can be found on your account information page.
 
-// Since using an Azuqua client is the most secure way to invoke a flo 
+// Since using an Azuqua client is the most secure way to invoke a flo
 // any published flo can be invoked with the credentials provided by this client, regardless of the flo's security level.
 
 // All asynchronous functions can return a promise if you prefer that pattern.
-// By default when you call an asynchronous function and 
+// By default when you call an asynchronous function and
 // leave the callback undefined it will return a promise.
 // By default Azuqua uses <a href="https://github.com/petkaantonov/bluebird">bluebird</a>.
 
@@ -41,19 +41,19 @@ var async = require("async"),
 // rst need to
 // get the alias for the flo. These can be found at the /api/account/flos route. This client maintains
 // an internal mapping between each flo name and its alias so you can invoke flos directly by their name.
-// Aliases are designed to be disposable so the flo maintainer can obfuscate endpoints as needed. 
+// Aliases are designed to be disposable so the flo maintainer can obfuscate endpoints as needed.
 
 var routes = {
-  invoke: { 
+  invoke: {
     path: "/flo/:id/invoke",
     method: "POST"
   },
-  inject: { 
+  inject: {
     path: "/flo/:id/inject",
     method: "POST"
   },
   flos: {
-    path: "/account/flos",
+    path: "cd ",
     method: "GET"
   },
   schedule: {
@@ -116,9 +116,9 @@ var getAlias = function(map, str){
 // Create a new Azuqua client.
 
 // This function first attempts to read accessKey and accessSecret data from environment variables.
-// These can be set with ACCESS_KEY and ACCESS_SECRET. 
+// These can be set with ACCESS_KEY and ACCESS_SECRET.
 // It then attempts to read them from the function's arguments.
-// You can overwrite the environment variables this way if necessary, 
+// You can overwrite the environment variables this way if necessary,
 // although it's not recommended to hard-code your account credentials.
 var Azuqua = function(accessKey, accessSecret, httpOptions){
   var self = this;
@@ -136,8 +136,8 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
   var protocol = "https";
 
   self.httpOptions = {
-    host: "api.azuqua.com", 
-    port: 443, 
+    host: "api.azuqua.com",
+    port: 443,
     headers: {
       "Content-Type": "application/json"
     }
@@ -274,6 +274,36 @@ Azuqua.prototype.loadConfigAsync = function(_path, _callback){
 
 // <strong>flos</strong>
 
+// List all flos avaliable to your access key and secret.
+Azuqua.prototype.getFlos = function(_refresh, _callback){
+  var self = this;
+  return wrapAsyncFunction(function(refresh, callback){
+    self.makeRequest(routes.flos, null, function(error, flos){
+      if(error){
+        callback(error);
+      }else{
+        async.map(flos, function(flo, next) {
+          return next(null, {
+            id : flo.id,
+            alias: flo.alias,
+            name: flo.name,
+            description: flo.description
+            org_id : flo.org_id,
+            active: flo.active,
+            published: flo.published
+          })
+        }, callback);
+      }
+    });
+  }, arguments);
+};
+
+
+// API Functions
+// -------------
+
+// <strong>flos</strong>
+
 // List all flos for your organization.
 
 // Note: This caches the flos locally. To refresh them provide a truthy first parameter.
@@ -311,8 +341,8 @@ Azuqua.prototype.flos = function(_refresh, _callback){
 
 // Retry a Flo identified by @instance_id
 // @instance_id is a string representing a particula execution of a flo.
-// @data is expected to be an object with the org and flo properties set to the 
-// original parent flo's id as well as the owner's org id. 
+// @data is expected to be an object with the org and flo properties set to the
+// original parent flo's id as well as the owner's org id.
 Azuqua.prototype.retry = function(_flo, _data, _force, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, force, callback){
@@ -333,7 +363,7 @@ Azuqua.prototype.retry = function(_flo, _data, _force, _callback){
 // If you try to invoke a flo whose alias cannot be found the client will first attempt to refresh
 // the flos cache once. Failing that it will call the callback or reject the promise with an error.
 // If the optional parameter @force is true then it will attempt to invoke the flo without
-// using the cache. Use this to avoid an extra network request if you already know the alias. 
+// using the cache. Use this to avoid an extra network request if you already know the alias.
 Azuqua.prototype.invoke = function(_flo, _data, _force, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, force, callback){
@@ -413,7 +443,7 @@ Azuqua.prototype.inputs = function (_flo, _force, _callback) {
 // If you try to inject a flo whose alias cannot be found the client will first attempt to refresh
 // the flos cache once. Failing that it will call the callback or reject the promise with an error.
 // If the optional parameter @force is true then it will attempt to inject the flo without
-// using the cache. Use this to avoid an extra network request if you already know the alias. 
+// using the cache. Use this to avoid an extra network request if you already know the alias.
 Azuqua.prototype.inject = function(_flo, _data, _force, _callback){
   var self = this;
   return wrapAsyncFunction(function(flo, data, force, callback){
@@ -421,13 +451,13 @@ Azuqua.prototype.inject = function(_flo, _data, _force, _callback){
       callback = force;
       force = false;
     }
-    
+
     var alias = getAlias(self.floMap || {}, flo);
     if(!alias && force)
       alias = flo;
     if(alias){
       var options = _.extend({}, routes.inject);
-      options.path = options.path.replace(":id", alias);  
+      options.path = options.path.replace(":id", alias);
       self.makeRequest(options, data, callback);
     }else{
       self.flos(true).then(function(){
@@ -452,7 +482,7 @@ Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
     var alias = getAlias(self.floMap || {}, flo);
     if(!alias && force)
       alias = flo;
-    
+
     if(alias){
       var options = _.extend({}, routes.schedule);
       options.path = options.path.replace(":id", alias);
@@ -471,4 +501,3 @@ Azuqua.prototype.schedule = function(_flo, _data, _force, _callback) {
 };
 
 module.exports = Azuqua;
-
