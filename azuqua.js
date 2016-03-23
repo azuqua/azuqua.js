@@ -202,22 +202,24 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     options.headers["x-api-accessKey"] = self.account.accessKey;
     self.client.request(options, params, function(error, resp){
       if(error){
-        callback(error);
+        return callback(error);
       }
-      else{
-        try{
-          resp.body = JSON.parse(resp.body);
-        }
-        catch(e){
-          return callback(resp.body);
-        }
+      var metadata = {
+        execution: resp.headers["x-flo-instance"],
+        statusCode: resp.statusCode
+      };
+      try{
+        resp.body = JSON.parse(resp.body);
+      }
+      catch(e){
+        return callback(resp.body, null, metadata);
+      }
 
-        if(resp.body.error) {
-          callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error));
-        }
-        else {
-          callback(null, resp.body);
-        }
+      if(resp.body.error) {
+        callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error), null, metadata);
+      }
+      else {
+        callback(null, resp.body, metadata);
       }
     });
   };
