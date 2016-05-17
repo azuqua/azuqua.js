@@ -22,12 +22,21 @@
 <pre>
 	
 	var async  = require("async"),
+    config = require("./config.json"),
 		Azuqua = require("azuqua");
-	// you can provide your accessKey and accessSecret here, but it's not recommended to hard-code these values
-	var azuqua = new Azuqua(); 
 
-	// the recommended pattern is to store them in a .json file
-	azuqua.loadConfig("./account.json"); 
+  var httpOptions = {
+    host: "api.azuqua.com", // URL of the api for your instance
+    port: 443,
+    protocol: "https"
+  };
+
+	var azuqua = new Azuqua(
+    // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
+    config.accessKey,
+    config.accessSecret,
+    httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
+  );
 
 	// invoke all your flos
 	var data = { a: 1 };
