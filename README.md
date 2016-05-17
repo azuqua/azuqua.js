@@ -1,67 +1,65 @@
-<h1>Azuqua Node.js client</h1>
-<p>
-	This library provides an easy interface for interacting with your Azuqua flos.
-	The Azuqua API is directly exposed to developers should you wish to write your own library.
-	For full API documentation please visit <a href="//developer.azuqua.com">developer.azuqua.com</a>.
-</p>
-<p>
-	Installation:
-	<pre> npm install azuqua </pre>
-</p>
-<p>
-	In order to make API requests you will need both your accessKey and accessSecret.
-	These can also be found on your account information page. 
-</p>
-<h1>Usage</h1>
-<strong>
-	All asynchronous functions can return a promise if you prefer that pattern.
-	When you call an asynchronous function and 
-	leave the callback undefined it will return a promise.
-	By default Azuqua uses bluebird.
-</strong>
-<pre>
-	
-	var async  = require("async"),
+Azuqua Node.js client
+=====================
+
+This library provides an easy interface for interacting with your Azuqua flos.
+The Azuqua API is directly exposed to developers should you wish to write your own library.
+For full API documentation please visit [developer.azuqua.com]("https//developer.azuqua.com")
+
+### Installation:
+`npm install azuqua`
+
+In order to make API requests you will need both your accessKey and accessSecret.
+These can also be found on your account information page. 
+
+### Usage
+
+All asynchronous functions can return a promise if you prefer that pattern.
+When you call an asynchronous function and 
+leave the callback undefined it will return a promise.
+By default Azuqua uses bluebird.
+
+```
+var async  = require("async"),
     config = require("./config.json"),
-		Azuqua = require("azuqua");
+    Azuqua = require("azuqua");
 
-  var httpOptions = {
-    host: "api.azuqua.com", // URL of the api for your instance
-    port: 443,
-    protocol: "https"
-  };
+var httpOptions = {
+  host: "api.azuqua.com", // URL of the api for your instance
+  port: 443,
+  protocol: "https"
+};
 
-	var azuqua = new Azuqua(
-    // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
-    config.accessKey,
-    config.accessSecret,
-    httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
-  );
+var azuqua = new Azuqua(
+  // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
+  config.accessKey,
+  config.accessSecret,
+  httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
+);
 
-	// invoke all your flos
-	var data = { a: 1 };
-	azuqua.flos(function(error, flos){
-		async.each(flos, function(flo, callback){
-			azuqua.invoke(flo, data, function(err, resp){
-				if(err){
-					console.log("Error invoking flo!", flo, err);
-					callback(err);
-				}else{
-					console.log("Flo returned: ", resp);
-					callback();
-				}
-			});
-		}, function(err){
-			if(err)
-				console.log("Flo invocation loop stopped!", err);
-			else
-				console.log("Finished invoking flos!");
+// invoke all your flos
+var data = { a: 1 };
+azuqua.flos(function(error, flos){
+	async.each(flos, function(flo, callback){
+		azuqua.invoke(flo, data, function(err, resp){
+			if(err){
+				console.log("Error invoking flo!", flo, err);
+				callback(err);
+			}else{
+				console.log("Flo returned: ", resp);
+				callback();
+			}
 		});
+	}, function(err){
+		if(err)
+			console.log("Flo invocation loop stopped!", err);
+		else
+			console.log("Finished invoking flos!");
 	});
+});
 
-</pre>
-<hr>
-<h1>LICENSE - "MIT License"</h1>
+```
+LICENSE - "MIT License"
+=======================
 Copyright (c) 2014 Azuqua
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
