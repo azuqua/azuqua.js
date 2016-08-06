@@ -17,3 +17,12 @@ node_modules
 .idea
 config.json
 test.js
+
+.vscode/
+typings/
+jsconfig.json
+azuqua-2.js
+config-private.js
+.eslintrc
+
+azuqua.js/

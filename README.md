@@ -1,3 +1,5 @@
+THIS IS A V2 JS CLIENT - WORK IN PROGRESS
+
 Azuqua Node.js client
 =====================
 
