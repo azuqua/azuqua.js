@@ -296,24 +296,13 @@ class Azuqua {
     }
     route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ? 
             '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
-    console.log('QUERY: ', route);
 
     let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, 
         this.account.accessSecret, _params);
 
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
 
-    // console.log(requestUrl, {
-    //   method: method,
-    //   headers : {
-    //     ...headers,
-    //     ...authHeaders
-    //   },
-    //   body : data
-    // });
-
     // The .then basically triggers the error handler on our flo methods
-    console.log(requestUrl);
     return fetch(requestUrl, {
       method: method,
       headers : {
@@ -388,7 +377,6 @@ class Azuqua {
     let timestamp = new Date().toISOString();
 
     let meta = [method.toLowerCase(), path, new Date().toISOString()].join(':') + pathQueryString;
-    console.log(meta);
     let hash = crypto.createHmac('sha256', accessSecret).update(new Buffer(meta, 'utf-8')).digest('hex');
 
     return {
