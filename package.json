@@ -31,7 +31,8 @@
     }
   ],
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "docs": "jsdoc src ./src/azuqua.js -d docs"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
   },
   "dependencies": {
     "bluebird": "^1.1.1",
+    "jsdoc": "git+https://github.com/jsdoc3/jsdoc.git",
     "lodash": "^4.14.1",
     "node-fetch": "^1.5.3"
   },
