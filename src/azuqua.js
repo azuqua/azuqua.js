@@ -24,6 +24,7 @@ const paramRegex = /:\w+/;
  * @param {object} Response - A response object containing relevant response information
  */
 
+// Checks if the response is within error range and if it is - throws an error
 function checkResponseError(response) {
   if (response.status < 200 || response.status >= 400) {
     return response.json()
@@ -35,10 +36,12 @@ function checkResponseError(response) {
   }
 };
 
+// Promise 'middleware' takes the fetch response and converts it to a JS object
 function toJSON(response) {
   return response.json();
 }
 
+// errorHandler for network/fetch errors. Provides a bit more information to the user
 function errorHandler(error) {
   if (error.name === 'FetchError') {
     let formattedError = new Error('Error reaching requested resource');
@@ -49,6 +52,7 @@ function errorHandler(error) {
   }
 }
 
+// Basic ending error function - easy single point of access for more complex error handling
 function handleErrorCallback(cb) {
   return function(error) {
     cb(error, null);
@@ -129,13 +133,11 @@ class Azuqua {
     if (!force && this._flos !== null) {
       return cb(null, this._flos);
     } 
-    this.makeRequest('GET', Azuqua.routes.flos.path, {})
+    this.makeRequest('GET', '/account/flos', {})
       .then((json) => {
         this._flos = json.map((flo) => new Flo(flo));
         cb(null, this._flos);
-      }).catch((error) => {
-        cb(error, null);
-      });
+      }).catch(handleErrorCallback(cb));
   } // End get flos method
 
   /**

@@ -9,6 +9,6 @@ gulp.task('default', () => {
         .pipe(babel({
           presets: ['es2015', 'es2016', 'stage-2']
         }))
-        .pipe(gulp.dest('azuqua.js'));
+        .pipe(gulp.dest('./'));
   });
 });
