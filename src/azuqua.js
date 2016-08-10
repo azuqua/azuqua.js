@@ -11,6 +11,7 @@ const fs = require('fs');
 const fetch = require('node-fetch');
 const Promise = require('bluebird');
 const _ = require('lodash');
+
 // Use bluebird for promises
 fetch.Promise = Promise;
 
@@ -107,9 +108,12 @@ class Azuqua {
    * Read all flos related to the given user account
    * @example
    * // Returns a list of flo objects - forcing the method to ignore caching
-   * azuqua.flos(true).then(function(flo) {
-   *  console.log(data)
+   * azuqua.flos(true).then(function(flos) {
+   *  flos.forEach(function(flo) {
+   *    // Do something with each flo
+   *  })
    * }).catch(function(error) {
+   *  // Handle error
    *  console.log('Error: ', error);
    * })
    * @param {boolean} [force=false] - Option to force flos to ignore cached flos and make new network request
@@ -136,6 +140,14 @@ class Azuqua {
 
   /**
    * Read information about a particular flo
+   * @example
+   * // Returns a flo object representing a particular flo
+   * azuqua.read('exampleFloAlias').then(function(flo) {
+   *  // Do something with flo response
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
    * @param {Flo|string} flo - The flo object or alias of a flo
    * @param {azuquaCallback} [cb] - Callback function that handles read response
    */
@@ -153,6 +165,14 @@ class Azuqua {
 
   /**
    * Invoke a flo with the given parameter information
+   * @example
+   * // Invokes a flo with given data
+   * azuqua.invoke('exampleFloAlias', { data : { 'name' : 'Azuqua' } }).then(function(response) {
+   *  // Do something with invoke response
+   * }).catch(function(error) {
+   *  // Handle the invoke error
+   *  console.log('Error: ', error);
+   * })
    * @param {Flo|string} flo - The flo object or alias of a flo
    * @param {object} params - An object containing the params needed to invoke the flo
    * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
@@ -171,6 +191,14 @@ class Azuqua {
 
   /**
    * Read the inputs of a particular flo
+   * @example
+   * // Reads the inputs of a flo
+   * azuqua.inputs('exampleFloAlias').then(function(inputs) {
+   *  // Do something with input data
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
    * @param {Flo|string} flo - The flo object or alias of a flo
    * @param {azuquaCallback} [cb] - Callback function that handles the inputs response
    */
@@ -188,6 +216,14 @@ class Azuqua {
   }
 
   /**
+   * @example
+   * // Reads the inputs of a flo
+   * azuqua.inputs('exampleFloAlias').then(function(inputs) {
+   *  // Do something with input data
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
    * Returns the orgs related to the particular user
    * @param {azuquaCallback} [cb] - Callback function that handles the inputs response
    */
@@ -203,6 +239,16 @@ class Azuqua {
 
   /**
    * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
+   * @example
+   * // Make a generic request to an azuqua api - signing the request with proper headers
+   * azuqua.makeRequest('GET', 'flo/:alias/invoke', 
+   * { alias : 'example alias', data : { name : 'Azuqua', location : 'Seattle' } })
+   *  .then(function(response) {
+   *   // Do something with response data
+   *  }).catch(function(error) {
+   *   // Handle the error
+   *   console.log('Error: ', error);
+   *  })
    * @param {string} _method - The HTTP method
    * @param {string} _path - The path of the desired resource. 
    * @param {object} [_params] - Additional params that will be parsed and passed to the request
@@ -301,7 +347,21 @@ class Azuqua {
     });
   }
 
-  // Start generateHeaders method
+  /**
+   * A generic function that generates the headers for a particular request
+   * @example
+   * // Produce an object with valid API headers generated from params (Notice it's static')
+   * Azuqua.generateHeaders('GET', 'flo/:alias/invoke', 'myaccesskey', 'myaccesssecret', {
+   *  data : {
+   *    name : 'Azuqua'
+   *  }
+   * })
+   * @param {string} method - The HTTP method
+   * @param {string} path - The path of the desired resource. 
+   * @param {string} accessKey - The requesters access key
+   * @param {string} accessSecret - The requesters access secret
+   * @param {object} [params] - Additional data needed for the hash (if applicable)
+   */
   static generateHeaders(method, path, accessKey, accessSecret, params = '') {
     // Default params don't override null and we can't send null data
     let data = params ? params.data : '';
@@ -332,16 +392,10 @@ class Azuqua {
     let hash = crypto.createHmac('sha256', accessSecret).update(new Buffer(meta, 'utf-8')).digest('hex');
 
     return {
-      'x-publisher-hash' : hash,
-      'x-publisher-key' : accessKey,
-      'x-publisher-timestamp' : timestamp
+      'x-api-hash' : hash,
+      'x-api-accesskey' : accessKey,
+      'x-api-timestamp' : timestamp
     };
-
-    // return {
-    //   'x-api-hash' : hash,
-    //   'x-api-accesskey' : accessKey,
-    //   'x-api-timestamp' : timestamp
-    // };
   } // End of generateHeaders
 
   // Declare routes
@@ -376,7 +430,26 @@ class Azuqua {
 
 } // End of Azuqua class declaration
 
+/** 
+ * Class representing a Flo instance 
+ * @property {String}  id             - ID for the flo.
+ * @property {String}  alias          - Alias of the flo.
+ * @property {String}  name           - Name of the flo.
+ * @property {String}  version        - Version of the flo.
+ * @property {Boolean} active         - Value indicating whether a flo has turned on.
+ * @property {Boolean} published      - Value indicating whether a flo has been published or not.
+ * @property {String}  security_level - Security level access for a flo.
+ * @property {String}  client_token   - Client Token for a flo.
+ * @property {String}  description    - Flo's description.
+ * @property {Date}    created
+ * @property {Date}    updated
+ * */
 class Flo {
+  /**
+   * Creates a Flo instance with given Flo data
+   * @constructor
+   * @param {Object} floObject - Object containing the data to build the flo with
+   */
   constructor(floObject) {
     _.extend(this, floObject);
   }
