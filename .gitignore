@@ -26,3 +26,5 @@ config-private.js
 .eslintrc
 
 azuqua.js/
+docs/
+out/
