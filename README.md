@@ -11,16 +11,16 @@ For full API documentation please visit [developer.azuqua.com]("https//developer
 `npm install azuqua`
 
 In order to make API requests you will need both your accessKey and accessSecret.
-These can also be found on your account information page. 
+These can also be found on your account information page.
 
 ### Usage
 
 All asynchronous functions can return a promise if you prefer that pattern.
-When you call an asynchronous function and 
+When you call an asynchronous function and
 leave the callback undefined it will return a promise.
 By default Azuqua uses bluebird.
 
-```
+```javascript
 var async  = require("async");
 var config = require("./config.json");
 var Azuqua = require("azuqua");
