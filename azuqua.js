@@ -266,7 +266,7 @@ var Azuqua = function () {
      * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
      * @example
      * // Make a generic request to an azuqua api - signing the request with proper headers
-     * azuqua.makeRequest('GET', 'flo/:alias/invoke', 
+     * azuqua.makeRequest('GET', 'flo/:alias/invoke',
      * { alias : 'example alias', data : { name : 'Azuqua', location : 'Seattle' } })
      *  .then(function(response) {
      *   // Do something with response data
@@ -275,7 +275,7 @@ var Azuqua = function () {
      *   console.log('Error: ', error);
      *  })
      * @param {string} _method - The HTTP method
-     * @param {string} _path - The path of the desired resource. 
+     * @param {string} _path - The path of the desired resource.
      * @param {object} [_params] - Additional params that will be parsed and passed to the request
      */
 
@@ -283,6 +283,8 @@ var Azuqua = function () {
     key: 'makeRequest',
     value: function makeRequest(_method, _path) {
       var _params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+      var _additionalHeaders = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
       if (!this.account.accessKey || !this.account.accessSecret) {
         return Promise.reject(new Error('Account information not provided'));
@@ -298,7 +300,7 @@ var Azuqua = function () {
 
       // TODO: Potentially allow http options override on individual request
 
-      // Set data 
+      // Set data
       if (method === 'GET') {
         data = '';
       } else {
@@ -307,10 +309,10 @@ var Azuqua = function () {
         }
       }
 
-      // Dynamically fill in peth with params
-      var urlRegex = /:\w+/;
-      var formattedUrl = url.parse(_path).format();
-      var urlComponents = formattedUrl.split('/');
+      // Dynamically fill in path with params
+      var urlRegex = /:\w+/; // Regular expression to test if path has /:param/
+      var formattedUrl = url.parse(_path).format(); // Normalize the URL
+      var urlComponents = formattedUrl.split('/'); // Split into components
       var _iteratorNormalCompletion = true;
       var _didIteratorError = false;
       var _iteratorError = undefined;
@@ -320,9 +322,11 @@ var Azuqua = function () {
           var component = _step.value;
 
           if (urlRegex.test(component)) {
+            // if the component is of type /:param/
             var name = component.substring(1);
             var replacement = _params[name];
             if (!replacement) {
+              // Return an error because the param doesn't have a replacement
               return Promise.reject('Mismatch between url params and passed params');
             } else {
               formattedUrl = formattedUrl.replace(component, replacement);
@@ -346,16 +350,33 @@ var Azuqua = function () {
         }
       }
 
-      route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ? '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
+      var hashOveride = {};
+      if (_params.hasOwnProperty('query') && _typeof(_params['query']) === 'object') {
+        _.extend(hashOveride, _params['query']);
+        route = formattedUrl + '?' + querystring.stringify(_params['query']);
+      } else {
+        route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ? '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
+      }
+      if (_params.hasOwnProperty('body') && _typeof(_params['body']) === 'object') {
+        hashOveride.data = {};
+        _.extend(hashOveride.data, _params['body']);
+        data = JSON.stringify(_params['body']);
+      }
+      console.log('route: ', route, ' data: ', data, ' params: ', _params);
 
-      var authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, _params);
+      var hashData = Object.keys(hashOveride).length > 0 ? hashOveride : _params;
+      if (!hashData.hasOwnProperty('data')) {
+        hashData.data = {};
+        _.extend(hashData.data, _params.data);
+      }
+      var authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, hashData);
 
       var requestUrl = this.protocol + '://' + this.httpOptions.host + ':' + this.httpOptions.port + route;
 
       // The .then basically triggers the error handler on our flo methods
       return fetch(requestUrl, {
         method: method,
-        headers: _extends({}, headers, authHeaders),
+        headers: _extends({}, headers, authHeaders, _additionalHeaders),
         body: data
       }).then(checkResponseError).then(toJSON).catch(errorHandler);
     } // End make request method
@@ -398,7 +419,7 @@ var Azuqua = function () {
      *  }
      * })
      * @param {string} method - The HTTP method
-     * @param {string} path - The path of the desired resource. 
+     * @param {string} path - The path of the desired resource.
      * @param {string} accessKey - The requesters access key
      * @param {string} accessSecret - The requesters access secret
      * @param {object} [params] - Additional data needed for the hash (if applicable)
@@ -481,8 +502,8 @@ var Azuqua = function () {
   return Azuqua;
 }(); // End of Azuqua class declaration
 
-/** 
- * Class representing a Flo instance 
+/**
+ * Class representing a Flo instance
  * @property {String}  id             - ID for the flo.
  * @property {String}  alias          - Alias of the flo.
  * @property {String}  name           - Name of the flo.

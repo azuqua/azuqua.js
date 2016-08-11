@@ -132,7 +132,7 @@ class Azuqua {
     }
     if (!force && this._flos !== null) {
       return cb(null, this._flos);
-    } 
+    }
     this.makeRequest('GET', '/account/flos', {})
       .then((json) => {
         this._flos = json.map((flo) => new Flo(flo));
@@ -243,7 +243,7 @@ class Azuqua {
    * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
    * @example
    * // Make a generic request to an azuqua api - signing the request with proper headers
-   * azuqua.makeRequest('GET', 'flo/:alias/invoke', 
+   * azuqua.makeRequest('GET', 'flo/:alias/invoke',
    * { alias : 'example alias', data : { name : 'Azuqua', location : 'Seattle' } })
    *  .then(function(response) {
    *   // Do something with response data
@@ -252,10 +252,10 @@ class Azuqua {
    *   console.log('Error: ', error);
    *  })
    * @param {string} _method - The HTTP method
-   * @param {string} _path - The path of the desired resource. 
+   * @param {string} _path - The path of the desired resource.
    * @param {object} [_params] - Additional params that will be parsed and passed to the request
    */
-  makeRequest(_method, _path, _params = {}) {
+  makeRequest(_method, _path, _params = {}, _additionalHeaders = {}) {
     if (!this.account.accessKey || !this.account.accessSecret) {
       return Promise.reject(new Error('Account information not provided'));
     }
@@ -267,10 +267,10 @@ class Azuqua {
       'Content-Type': 'application/json'
     };
     let data = null;
-    
+
     // TODO: Potentially allow http options override on individual request
 
-      // Set data 
+      // Set data
     if (method === 'GET') {
       data = '';
     } else {
@@ -279,15 +279,15 @@ class Azuqua {
       }
     }
 
-      // Dynamically fill in peth with params
-    let urlRegex = /:\w+/;
-    let formattedUrl = url.parse(_path).format();
-    let urlComponents = formattedUrl.split('/');
+    // Dynamically fill in path with params
+    let urlRegex = /:\w+/; // Regular expression to test if path has /:param/
+    let formattedUrl = url.parse(_path).format(); // Normalize the URL
+    let urlComponents = formattedUrl.split('/'); // Split into components
     for (let component of urlComponents) {
-      if (urlRegex.test(component)) {
+      if (urlRegex.test(component)) { // if the component is of type /:param/
         let name = component.substring(1);
         let replacement = _params[name];
-        if (!replacement) {
+        if (!replacement) { // Return an error because the param doesn't have a replacement
           return Promise.reject('Mismatch between url params and passed params');
         } else {
           formattedUrl = formattedUrl.replace(component, replacement);
@@ -296,11 +296,29 @@ class Azuqua {
         }
       }
     }
-    route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ? 
-            '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
 
-    let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, 
-        this.account.accessSecret, _params);
+    let hashOveride = {};
+    if (_params.hasOwnProperty('query') && typeof _params['query'] === 'object') {
+      _.extend(hashOveride, _params['query']);
+      route = formattedUrl + '?' + querystring.stringify(_params['query']);
+    } else {
+      route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ?
+              '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
+    }
+    if (_params.hasOwnProperty('body') && typeof _params['body'] === 'object') {
+      hashOveride.data = {};
+      _.extend(hashOveride.data, _params['body']);
+      data = JSON.stringify(_params['body']);
+    }
+    console.log('route: ', route, ' data: ', data, ' params: ', _params);
+
+    let hashData = Object.keys(hashOveride).length > 0 ? hashOveride : _params;
+    if (!hashData.hasOwnProperty('data')) {
+      hashData.data = {};
+      _.extend(hashData.data, _params.data);
+    }
+    let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey,
+        this.account.accessSecret, hashData);
 
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
 
@@ -309,7 +327,8 @@ class Azuqua {
       method: method,
       headers : {
         ...headers,
-        ...authHeaders
+        ...authHeaders,
+        ..._additionalHeaders
       },
       body : data
     }).then(checkResponseError).then(toJSON).catch(errorHandler);
@@ -348,7 +367,7 @@ class Azuqua {
    *  }
    * })
    * @param {string} method - The HTTP method
-   * @param {string} path - The path of the desired resource. 
+   * @param {string} path - The path of the desired resource.
    * @param {string} accessKey - The requesters access key
    * @param {string} accessSecret - The requesters access secret
    * @param {object} [params] - Additional data needed for the hash (if applicable)
@@ -390,7 +409,7 @@ class Azuqua {
 
   // Declare routes
   static get routes() {
-    return {      
+    return {
       invoke: {
         path: '/flo/:alias/invoke',
         method: 'POST'
@@ -420,8 +439,8 @@ class Azuqua {
 
 } // End of Azuqua class declaration
 
-/** 
- * Class representing a Flo instance 
+/**
+ * Class representing a Flo instance
  * @property {String}  id             - ID for the flo.
  * @property {String}  alias          - Alias of the flo.
  * @property {String}  name           - Name of the flo.
