@@ -28,3 +28,7 @@ config-private.js
 azuqua.js/
 docs/
 out/
+
+test*.js
+
+*.swp

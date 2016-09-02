@@ -59,6 +59,12 @@ function handleErrorCallback(cb) {
   };
 }
 
+function makeAliasEndpoint(flo, endpoint) {
+  let alias = typeof flo === 'string' ? flo : flo.alias;
+  let endpointWithAlias = endpoint.replace(':alias', alias); 
+  return endpointWithAlias;
+}
+
 /** Class representing an Azuqua instance */
 class Azuqua {
   /**
@@ -121,24 +127,34 @@ class Azuqua {
    *  console.log('Error: ', error);
    * })
    * @param {boolean} [force=false] - Option to force flos to ignore cached flos and make new network request
+   * @param {object} [params] - Optional information to pass to /account/flos route
    * @param {azuquaCallback} [cb] - Callback function that handles flos response
    */
-  flos(force, cb) {
+  flos(force, params, cb) {
     if (typeof force === 'function') {
       cb = force;
       force = false;
-    } else if (typeof force !== 'function' && typeof cb !== 'function') {
-      return Promise.promisify(this.flos).bind(this)(force);
+      params = {};
+    } else if (typeof params === 'function') {
+      cb = params;
+      params = {};
+    } else if (typeof force !== 'function' && typeof cb !== 'function' && typeof params !== 'function') {
+      return Promise.promisify(this.flos).bind(this)(force, params);
     }
     if (!force && this._flos !== null) {
       return cb(null, this._flos);
     }
-    this.makeRequest('GET', '/account/flos', {})
+    this.makeRequest('GET', '/account/flos', { query : params })
       .then((json) => {
         this._flos = json.map((flo) => new Flo(flo));
         cb(null, this._flos);
       }).catch(handleErrorCallback(cb));
-  } // End get flos method
+  } 
+
+  read(flo, cb) {
+    console.log(`Calling deprecated method 'read' - please use the 'readFlo method'`);
+    this.readFlo(flo, cb);
+  }
 
   /**
    * Read information about a particular flo
@@ -153,13 +169,12 @@ class Azuqua {
    * @param {Flo|string} flo - The flo object or alias of a flo
    * @param {azuquaCallback} [cb] - Callback function that handles read response
    */
-  read(flo, cb) {
+  readFlo(flo, cb) {
     if (typeof cb !== 'function') {
       return Promise.promisify(this.read).bind(this)(flo);
     }
-    let alias = typeof flo === 'string' ? flo : flo.alias;
-    let params = { alias : alias };
-    this.makeRequest('GET', '/flo/:alias/read', params)
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFlo.path);
+    this.makeRequest('GET', endpoint)
       .then((json) => {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -168,8 +183,30 @@ class Azuqua {
   /**
    * Invoke a flo with the given parameter information
    * @example
+   * // The params object can have a few different apperance
+   * var data = {
+   *  'data' : 'at the top level',
+   *  'like' : 'this'
+   * }
+   * // This kind of format is good for F1 flos - where all data should be sent through the body
+   *
+   * // If you're working with the new Azuqua designer you might of noticed you can specify where
+   * data should be taken from on your on demand flos
+   * // In that case the client allows you to specify where the params will end up
+   * var data = {
+   *  headers : {
+   *    'this data' : 'will be attached as additional headers'
+   *  },
+   *  query : {
+   *    'this data' : 'will be converted to a query string and appended to the URL'
+   *  },
+   *  body : {
+   *    'and this data' : 'will be send in the body'
+   *  }
+   *  'any additional data' : 'will also be send in the body object'
+   * }
    * // Invokes a flo with given data
-   * azuqua.invoke('exampleFloAlias', { data : { 'name' : 'Azuqua' } }).then(function(response) {
+   * azuqua.invoke('exampleFloAlias', { 'name' : 'Azuqua' }).then(function(response) {
    *  // Do something with invoke response
    * }).catch(function(error) {
    *  // Handle the invoke error
@@ -183,9 +220,33 @@ class Azuqua {
     if (typeof cb !== 'function') {
       return Promise.promisify(this.invoke).bind(this)(flo, params);
     }
-    let alias = typeof flo === 'string' ? flo : flo.alias;
-    params.alias = alias;
-    this.makeRequest('POST', Azuqua.routes.invoke.path, params)
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path);
+    this.makeRequest('POST', endpoint, params)
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Injects data into a flo with the given parameter information
+   * @example
+   * // Injects a flo with given data
+   * azuqua.inject('exampleFloAlias', { 'name' : 'Azuqua' }).then(function(response) {
+   *  // Do something with inject response
+   * }).catch(function(error) {
+   *  // Handle the inject error
+   *  console.log('Error: ', error);
+   * })
+   * @param {Flo|string} flo - The flo object or alias of a flo
+   * @param {object} params - An object containing the params needed to invoke the flo
+   * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+   */
+  inject(flo, params, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.invoke).bind(this)(flo, params);
+    }
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.inject.path);
+    this.makeRequest('POST', endpoint, params)
       .then((json) => {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -208,10 +269,8 @@ class Azuqua {
     if (typeof cb !== 'function') {
       return Promise.promisify(this.inputs).bind(this)(flo);
     }
-    let alias = typeof flo === 'string' ? flo : flo.alias;
-    let params = {};
-    params.alias = alias;
-    this.makeRequest('GET', Azuqua.routes.inputs.path, params)
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.inputs.path);
+    this.makeRequest('GET', endpoint)
       .then((json) => {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -227,13 +286,131 @@ class Azuqua {
    *  console.log('Error: ', error);
    * })
    * Returns the orgs related to the particular user
-   * @param {azuquaCallback} [cb] - Callback function that handles the inputs response
+   * @param {azuquaCallback} [cb] - Callback function that handles the groups response
    */
-  groups(cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.groups).bind(this)();
+  groups(params, cb) {
+    if (typeof params === 'function') {
+      cb = params;
+      params = {};
     }
-    this.makeRequest('GET', 'user/orgs', {})
+    if (typeof params !== 'function' && typeof cb !== 'function') {
+      return Promise.promisify(this.groups).bind(this)(params);
+    }
+    this.makeRequest('GET', Azuqua.routes.groups.path, { query : params })
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Create an Azuqua rule
+   * @example
+   * var rule = {
+   *   'conditions': {
+   *     'identifiers': [],
+   *     'expr': 'avg(.data.outside.temp) > 30 and .data.humidity < 20',
+   *     'scope': 'user',
+   *     'id': my_id
+   *   },
+   *   'policy': '',
+   *   'org_id': my_org_id,
+   *   'user_id': my_id
+   * }
+   * // Creates and returns a rule object representing a particular rule
+   * azuqua.createRule(rule).then(function(rule) {
+   *  // Do something with rule response (Rule was created)
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
+   * @param {Rule} rule - The rule object representing the created rule
+   * @param {azuquaCallback} [cb] - Callback function that handles create response
+   */
+  createRule(rule, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.createRule).bind(this)(rule);
+    }
+    this.makeRequest('POST', '/rule', { rule : rule })
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+  
+  /**
+   * Read a particular rule with provided rule id
+   * @example
+   * 
+   * azuqua.readRule(rule_id).then(function(rule) {
+   *  // Do something with rule response 
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
+   * @param {integer} id - The ID of the rule to read
+   * @param {azuquaCallback} [cb] - Callback function that handles read response
+   */
+  readRule(id, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.readRule).bind(this)(id);
+    }
+    let endpoint =  Azuqua.routes.readRule.path.replace(':id', id);
+    this.makeRequest('GET', endpoint)
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Update an Azuqua rule
+   * @example
+   * var rule = {
+   *   'conditions': {
+   *     'expr': 'avg(.data.inside.temp) < 50',
+   *     'scope': 'flo',
+   *     'id': flo_id
+   *   },
+   *   'policy': 'Let's update the policy!',
+   * }
+   * // Updates and returns a rule object representing a particular rule
+   * azuqua.updateRule(rule_id, rule).then(function(rule) {
+   *  // Do something with rule response (Rule was updated)
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
+   * @param {integer} id - TThe ID of the rule to read
+   * @param {Rule} rule - The rule object representing the updated rule
+   * @param {azuquaCallback} [cb] - Callback function that handles update response
+   */
+  updateRule(id, rule, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.updateRule).bind(this)(id, rule);
+    }
+    let endpoint =  Azuqua.routes.updateRule.path.replace(':id', id);
+    this.makeRequest('PUT', endpoint, { rule : rule })
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Deletes an Azuqua rule
+   * // Creates and returns a rule object representing a particular rule
+   * azuqua.deleteRule(rule).then(function(rule) {
+   *  // Do something with response (Rule was deleted)
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
+   * @param {integer} id - TThe ID of the rule to delete
+   * @param {azuquaCallback} [cb] - Callback function that handles delete response
+   */
+  deleteRule(id, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.deleteRule).bind(this)(id);
+    }
+    let endpoint =  Azuqua.routes.deleteRule.path.replace(':id', id);
+    this.makeRequest('DELETE', endpoint)
       .then((json) => {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -253,72 +430,61 @@ class Azuqua {
    *  })
    * @param {string} _method - The HTTP method
    * @param {string} _path - The path of the desired resource.
-   * @param {object} [_params] - Additional params that will be parsed and passed to the request
+   * @param {object} [_params] - Additional params that will be parsed and passed to the request (Incldues data that will be passed onto invoked flo)
    */
-  makeRequest(_method, _path, _params = {}, _additionalHeaders = {}) {
+  makeRequest(_method, _path, _params = {}) {
     if (!this.account.accessKey || !this.account.accessSecret) {
       return Promise.reject(new Error('Account information not provided'));
     }
 
-    let route = null;
+    let route = _path;
+    let params = _.cloneDeep(_params);
     let method = _method.toUpperCase();
     let headers = {
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     };
+    let query = {};
+    let body = {};
+
+    // Take information about of params and place it in respective place
+    if (params.query) {
+      if (typeof params.query === 'object') {
+        query = params.query;
+      } 
+      delete params.query;
+    }
+    if (params.headers) {
+      if (typeof params.headers === 'object') {
+        _.extend(headers, params.headers);
+      }
+      delete params.headers;
+    }
+    if (params.body) {
+      if (typeof params.body === 'object') {
+        body = params.body;
+      }
+      delete params.body;
+    }
+    _.extend(body, params);
+
+    // Represents the data that will be hashed (Which is why we stringify it)
     let data = null;
 
-    // TODO: Potentially allow http options override on individual request
-
-      // Set data
-    if (method === 'GET') {
-      data = '';
+    // Set data
+    if (method === 'GET' || method === 'DELETE') {
+      data = Object.keys(query).length > 0 ? JSON.stringify(query) : '';
+      body = ''; // API DOESN'T EXCEPT GET WITH BODIES
     } else {
-      if (_params.data) {
-        data = JSON.stringify(_params.data);
-      }
+      data = Object.keys(body).length > 0 ? JSON.stringify(body) : '';
+      body = data;
     }
+    if (Object.keys(query).length > 0) {
+      route = route + '?' + querystring.stringify(query);
+    }
+ 
 
-    // Dynamically fill in path with params
-    let urlRegex = /:\w+/; // Regular expression to test if path has /:param/
-    let formattedUrl = url.parse(_path).format(); // Normalize the URL
-    let urlComponents = formattedUrl.split('/'); // Split into components
-    for (let component of urlComponents) {
-      if (urlRegex.test(component)) { // if the component is of type /:param/
-        let name = component.substring(1);
-        let replacement = _params[name];
-        if (!replacement) { // Return an error because the param doesn't have a replacement
-          return Promise.reject('Mismatch between url params and passed params');
-        } else {
-          formattedUrl = formattedUrl.replace(component, replacement);
-            // Not sure if we need this
-          delete _params[name];
-        }
-      }
-    }
-
-    let hashOveride = {};
-    if (_params.hasOwnProperty('query') && typeof _params['query'] === 'object') {
-      _.extend(hashOveride, _params['query']);
-      route = formattedUrl + '?' + querystring.stringify(_params['query']);
-    } else {
-      route = formattedUrl + (Object.keys(_.omit(_params, ['data'])).length > 0 ?
-              '?' + querystring.stringify(_.omit(_params, ['data'])) : '');
-    }
-    if (_params.hasOwnProperty('body') && typeof _params['body'] === 'object') {
-      hashOveride.data = {};
-      _.extend(hashOveride.data, _params['body']);
-      data = JSON.stringify(_params['body']);
-    }
-    console.log('route: ', route, ' data: ', data, ' params: ', _params);
-
-    let hashData = Object.keys(hashOveride).length > 0 ? hashOveride : _params;
-    if (!hashData.hasOwnProperty('data')) {
-      hashData.data = {};
-      _.extend(hashData.data, _params.data);
-    }
-    let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey,
-        this.account.accessSecret, hashData);
+    let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
 
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
 
@@ -328,9 +494,8 @@ class Azuqua {
       headers : {
         ...headers,
         ...authHeaders,
-        ..._additionalHeaders
       },
-      body : data
+      body : body
     }).then(checkResponseError).then(toJSON).catch(errorHandler);
   } // End make request method
 
@@ -370,11 +535,10 @@ class Azuqua {
    * @param {string} path - The path of the desired resource.
    * @param {string} accessKey - The requesters access key
    * @param {string} accessSecret - The requesters access secret
-   * @param {object} [params] - Additional data needed for the hash (if applicable)
+   * @param {object} [data] - Additional data needed for the hash (if applicable)
    */
-  static generateHeaders(method, path, accessKey, accessSecret, params = '') {
+  static generateHeaders(method, path, accessKey, accessSecret, data) {
     // Default params don't override null and we can't send null data
-    let data = params ? params.data : '';
     if (!data) {
       data = '';
     }
@@ -383,21 +547,17 @@ class Azuqua {
       data = JSON.stringify(data);
     }
 
+    // Think this can be simplified
     let pathQueryString;
-    if (method === 'GET') {
-      let queryObject = url.parse(path, true).query;
-      if (Object.keys(queryObject).length > 0) {
-        pathQueryString = JSON.stringify(queryObject);
-      } else {
-        pathQueryString = '';
-      }
+    if (method === 'GET' || method === 'DELETE') {
+      pathQueryString = data || '';
     } else {
       pathQueryString = data || '{}';
     }
 
     let timestamp = new Date().toISOString();
 
-    let meta = [method.toLowerCase(), path, new Date().toISOString()].join(':') + pathQueryString;
+    let meta = [method.toLowerCase(), path, timestamp].join(':') + pathQueryString;
     let hash = crypto.createHmac('sha256', accessSecret).update(new Buffer(meta, 'utf-8')).digest('hex');
 
     return {
@@ -410,6 +570,10 @@ class Azuqua {
   // Declare routes
   static get routes() {
     return {
+      readFlo: {
+        path: '/flo/:alias/read',
+        method: 'GET'
+      },
       invoke: {
         path: '/flo/:alias/invoke',
         method: 'POST'
@@ -433,6 +597,26 @@ class Azuqua {
       inputs: {
         path: '/flo/:alias/inputs',
         method: 'GET'
+      },
+      groups: {
+        path: '/user/orgs',
+        method: 'GET'
+      },
+      createRule : {
+        path: '/rule',
+        method: 'POST'
+      },
+      readRule: {
+        path: '/rule/:id',
+        method: 'GET'
+      },
+      updateRule : {
+        path: '/rule/:id',
+        method: 'PUT'
+      },
+      deleteRule: {
+        path: '/rule/:id',
+        method: 'DELETE'
       }
     };
   } // End of route declarations

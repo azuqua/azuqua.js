@@ -42,18 +42,18 @@ var azuqua = new Azuqua(
 
 // Read all flos and then invoke them
 var data = { a: 1 };
-azuqua.flos(function(error, flos){
-	async.each(flos, function(flo, callback){
-		azuqua.invoke(flo, data, function(err, resp){
-			if(err){
+azuqua.flos(function (error, flos) {
+	async.each(flos, function (flo, callback) {
+		azuqua.invoke(flo, data, function (err, resp) {
+			if (err) {
 				console.log("Error invoking flo!", flo, err);
 				callback(err);
-			}else{
+			} else {
 				console.log("Flo returned: ", resp);
 				callback();
 			}
 		});
-	}, function(err){
+	}, function (err) {
 		if(err)
 			console.log("Flo invocation loop stopped!", err);
 		else
@@ -62,23 +62,23 @@ azuqua.flos(function(error, flos){
 });
 
 // Of course, promises are supported too...
-var data = { a : 1};
+var data = { a : 1 };
 azuqua.flos()
-  .then(function(flos) {
+  .then(function (flos) {
     var firstFlo = flos.pop();
     return azuqua.invoke(firstFlo, { data : { name : Azuqua } })
-  }).then(function(response) {
+  }).then(function (response) {
     console.log('Got a response from invoking a flo!', response);
-  }).catch(function(error) {
+  }).catch(function (error) {
     console.log('Uh oh! We got an error');
   })
 
 // Version 2 also supports custom requests via the static makeRequests method
 azuqua.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
-  .then(function(response) {
+  .then(function (response) {
     console.log('Here!');
     console.log(response.name);
-  }).catch(function(error) {
+  }).catch(function (error) {
     console.log('Error: ', error);
   });
 
