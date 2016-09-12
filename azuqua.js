@@ -451,6 +451,33 @@ var Azuqua = function () {
     }
 
     /**
+     * @example
+     * Links a Azuqua rule to a flo by each respective ID
+     * // Links a rule to a flo and returns the rule
+     * azuqua.linkRuleAndFlo(rule).then(function(rule) {
+     *  // Do something with response (Rule was linked)
+     * }).catch(function(error) {
+     *  // Handle error
+     *  console.log('Error: ', error);
+     * })
+     * @param {integer} ruleId - The ID of the rule to link
+     * @param {integer} floId - TThe ID of the flo to link
+     * @param {azuquaCallback} [cb] - Callback function that handles delete response
+     */
+
+  }, {
+    key: 'linkRuleAndFlo',
+    value: function linkRuleAndFlo(ruleId, floId, cb) {
+      if (typeof cb !== 'function') {
+        return Promise.promisify(this.linkRuleAndFlo).bind(this)(ruleId, floId);
+      }
+      var endpoint = Azuqua.routes.linkRuleAndFlo.path.replace(':ruleId', ruleId).replace(':floId', floId);
+      this.makeRequest('POST', endpoint).then(function (json) {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+    }
+
+    /**
      * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
      * @example
      * // Make a generic request to an azuqua api - signing the request with proper headers
@@ -663,6 +690,10 @@ var Azuqua = function () {
         deleteRule: {
           path: '/rule/:id',
           method: 'DELETE'
+        },
+        linkRuleAndFlo: {
+          path: '/rule/:ruleId/associate/:floId',
+          method: 'POST'
         }
       };
     } // End of route declarations
