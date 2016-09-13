@@ -378,7 +378,7 @@ class Azuqua {
    *  // Handle error
    *  console.log('Error: ', error);
    * })
-   * @param {integer} id - TThe ID of the rule to read
+   * @param {integer} id - The ID of the rule to read
    * @param {Rule} rule - The rule object representing the updated rule
    * @param {azuquaCallback} [cb] - Callback function that handles update response
    */
@@ -395,6 +395,7 @@ class Azuqua {
 
   /**
    * Reads all the rules associated with the azuqua account
+   * @example
    * // Reads all the rules associated with the given azuqua account
    * azuqua.readAllRules().then(function(rules) {
    *  // Do something with response (Array with all the rules)
@@ -402,11 +403,11 @@ class Azuqua {
    *  // Handle error
    *  console.log('Error: ', error);
    * })
-   * @param {azuquaCallback} [cb] - Callback function that handles delete response
+   * @param {azuquaCallback} [cb] - Callback function that handles readAllRules response
    */
   readAllRules(cb) {
     if (typeof cb !== 'function') {
-      return Promise.promisify(this.deleteRule).bind(this)();
+      return Promise.promisify(this.readAllRules).bind(this)();
     }
     let endpoint =  Azuqua.routes.readAllRules.path;
     this.makeRequest('GET', endpoint)
@@ -417,6 +418,7 @@ class Azuqua {
 
   /**
    * Deletes an Azuqua rule
+   * @example
    * // Creates and returns a rule object representing a particular rule
    * azuqua.deleteRule(rule).then(function(rule) {
    *  // Do something with response (Rule was deleted)
@@ -424,7 +426,7 @@ class Azuqua {
    *  // Handle error
    *  console.log('Error: ', error);
    * })
-   * @param {integer} id - TThe ID of the rule to delete
+   * @param {integer} id - The ID of the rule to delete
    * @param {azuquaCallback} [cb] - Callback function that handles delete response
    */
   deleteRule(id, cb) {
@@ -449,7 +451,7 @@ class Azuqua {
    *  console.log('Error: ', error);
    * })
    * @param {integer} ruleId - The ID of the rule to link
-   * @param {integer} floId - TThe ID of the flo to link
+   * @param {integer} floId - The ID of the flo to link
    * @param {azuquaCallback} [cb] - Callback function that handles delete response
    */
   linkRuleAndFlo(ruleId, floId, cb) {
