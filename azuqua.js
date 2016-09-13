@@ -426,6 +426,30 @@ var Azuqua = function () {
     }
 
     /**
+     * Reads all the rules associated with the azuqua account
+     * // Reads all the rules associated with the given azuqua account
+     * azuqua.readAllRules().then(function(rules) {
+     *  // Do something with response (Array with all the rules)
+     * }).catch(function(error) {
+     *  // Handle error
+     *  console.log('Error: ', error);
+     * })
+     * @param {azuquaCallback} [cb] - Callback function that handles delete response
+     */
+
+  }, {
+    key: 'readAllRules',
+    value: function readAllRules(cb) {
+      if (typeof cb !== 'function') {
+        return Promise.promisify(this.deleteRule).bind(this)();
+      }
+      var endpoint = Azuqua.routes.readAllRules.path;
+      this.makeRequest('GET', endpoint).then(function (json) {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+    }
+
+    /**
      * Deletes an Azuqua rule
      * // Creates and returns a rule object representing a particular rule
      * azuqua.deleteRule(rule).then(function(rule) {
@@ -690,6 +714,10 @@ var Azuqua = function () {
         deleteRule: {
           path: '/rule/:id',
           method: 'DELETE'
+        },
+        readAllRules: {
+          path: '/rules',
+          method: 'GET'
         },
         linkRuleAndFlo: {
           path: '/rule/:ruleId/associate/:floId',
