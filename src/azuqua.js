@@ -38,17 +38,36 @@ function checkResponseError(response) {
 
 // Promise 'middleware' takes the fetch response and converts it to a JS object
 function toJSON(response) {
-  return response.json();
+  return response.text()
+    .then(text => {
+      try {
+        let responseJson = JSON.parse(text);
+        return Promise.resolve(responseJson);
+      } catch (e) {
+        return Promise.reject({ 
+          type : 'ResponseParsingError',
+          message : `Error trying to parse the following server response as JSON: ${text}`
+        });
+      }
+    }) 
 }
 
 // errorHandler for network/fetch errors. Provides a bit more information to the user
 function errorHandler(error) {
   if (error.name === 'FetchError') {
-    let formattedError = new Error('Error reaching requested resource');
-    formattedError.name = 'Request Error';
-    throw formattedError;
+    return Promise.reject({
+      type : 'FetchError',
+      message: 'Failed to reach requested resource'
+    })
   } else {
-    throw error;
+    let message = 'There was an error in the request process';
+    if (error.message) {
+      message = error.message;
+    }
+    return Promise.reject({
+      type: 'Error',
+      message
+    })
   }
 }
 
