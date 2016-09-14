@@ -238,15 +238,63 @@ class Azuqua {
    *  console.log('Error: ', error);
    * })
    * @param {Flo|string} flo - The flo object or alias of a flo
-   * @param {object} params - An object containing the params needed to invoke the flo
-   * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+   * @param {object} params - An object containing the params needed to inject the flo
+   * @param {azuquaCallback} [cb] - Callback function that handles the inject response
    */
   inject(flo, params, cb) {
     if (typeof cb !== 'function') {
-      return Promise.promisify(this.invoke).bind(this)(flo, params);
+      return Promise.promisify(this.inject).bind(this)(flo, params);
     }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.inject.path);
     this.makeRequest('POST', endpoint, params)
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Enables a flo
+   * @example
+   * // Enables the flo or flo with alias
+   * azuqua.enable('exampleFloAlias').then(function(response) {
+   *  // Do something with enable response
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
+   * @param {Flo|string} flo - The flo object or alias of a flo
+   * @param {azuquaCallback} [cb] - Callback function that handles the enable response
+   */
+  enable(flo, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.enable).bind(this)(flo);
+    }
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.enable.path);
+    this.makeRequest('POST', endpoint)
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
+  /**
+   * Disables a flo
+   * @example
+   * // Disables the flo or flo with alias
+   * azuqua.disable('exampleFloAlias').then(function(response) {
+   *  // Do something with disable response
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
+   * @param {Flo|string} flo - The flo object or alias of a flo
+   * @param {azuquaCallback} [cb] - Callback function that handles the disable response
+   */
+  disable(flo, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.disable).bind(this)(flo);
+    }
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.disable.path);
+    this.makeRequest('POST', endpoint)
       .then((json) => {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -629,6 +677,14 @@ class Azuqua {
       },
       inject: {
         path: '/flo/:alias/inject',
+        method: 'POST'
+      },
+      enable: {
+        path: '/flo/:alias/enable',
+        method: 'POST'
+      },
+      disable: {
+        path: '/flo/:alias/disable',
         method: 'POST'
       },
       flos: {
