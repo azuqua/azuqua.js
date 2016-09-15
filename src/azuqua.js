@@ -15,7 +15,15 @@ const _ = require('lodash');
 // Use bluebird for promises
 fetch.Promise = Promise;
 
-const paramRegex = /:\w+/;
+// Local Requires
+// Explination: Conditionally load routes try local but if run from src, load from another path
+const routes = (() => {
+  try {
+    return require('./static/routes')
+  } catch (e) {
+    return require('../static/routes')
+  }
+})();
 
 /**
  * `AzuquaCallback`
@@ -94,26 +102,10 @@ class Azuqua {
    * @param {object} [httpOptions] - An httpOptions object to override default httpOptions
    */
   constructor(accessKey, accessSecret, httpOptions) {
-      // Properties
+    // Default Properties
     this.account = {};
     this.account.accessKey = undefined;
     this.account.accessSecret = undefined;
-
-    // Cached Flos
-    this._flos = null;
-
-    if(process.env.ACCESS_KEY) {
-      this.account.accessKey = process.env.ACCESS_KEY;
-    }
-    if(process.env.ACCESS_SECRET) {
-      this.account.accessSecret = process.env.ACCESS_SECRET;
-    }
-    if(typeof accessKey === 'string') {
-      this.account.accessKey = accessKey;
-    }
-    if(typeof accessSecret === 'string') {
-      this.account.accessSecret = accessSecret;
-    }
 
     this.protocol = 'https';
     this.httpOptions = {
@@ -121,13 +113,58 @@ class Azuqua {
       port: 443
     };
 
-    if (typeof httpOptions === 'object') {
-      this.httpOptions = {
-        ...this.httpOptions,
-        ...httpOptions
-      };
+    // Cached Flos
+    this._flos = null;
+
+    if (arguments.length === 0 || arguments.length === 1) {
+      // Default constructor - Look at env for key and secret
+      // Could always load later with loadConfig
+      if (process.env.ACCESS_KEY) {
+        this.account.accessKey = process.env.ACCESS_KEY;
+      }
+      if (process.env.ACCESS_SECRET) {
+        this.account.accessSecret = process.env.ACCESS_SECRET;
+      }
+      if (process.env.AZUQUA_ACCESS_KEY) {
+        this.account.accessKey = process.env.AZUQUA_ACCESS_KEY;
+      }
+      if (process.env.AZUQUA_ACCESS_SECRET) {
+        this.account.accessSecret = process.env.AZUQUA_ACCESS_SECRET;
+      }
+      if (arguments.length === 1 && typeof arguments[0] === 'object') {
+        // If we have an argument it should be http options
+        this.httpOptions = {
+          ...this.httpOptions,
+          ...httpOptions
+        };
+      }
+    } else if (arguments.length === 2) {
+      // If 2 arguments, assume they are key and secret
+      // And proceed to use default http options 
+      if (typeof accessKey === 'string') {
+        this.account.accessKey = accessKey;
+      }
+      if (typeof accessSecret === 'string') {
+        this.account.accessSecret = accessSecret;
+      }
+    } else {
+      // 3 or more arguments we assume passed in correct order
+      if (typeof accessKey === 'string') {
+        this.account.accessKey = accessKey;
+      }
+      if (typeof accessSecret === 'string') {
+        this.account.accessSecret = accessSecret;
+      }
+
+      if (typeof httpOptions === 'object') {
+        this.httpOptions = {
+          ...this.httpOptions,
+          ...httpOptions
+        };
+      }
     }
 
+    // Finally set port
     this.protocol = this.httpOptions.port === 443 ? 'https' : 'http';
 
     Object.freeze(this.httpOptions);
@@ -685,72 +722,7 @@ class Azuqua {
 
   // Declare routes
   static get routes() {
-    return {
-      readFlo: {
-        path: '/flo/:alias/read',
-        method: 'GET'
-      },
-      invoke: {
-        path: '/flo/:alias/invoke',
-        method: 'POST'
-      },
-      inject: {
-        path: '/flo/:alias/inject',
-        method: 'POST'
-      },
-      enable: {
-        path: '/flo/:alias/enable',
-        method: 'POST'
-      },
-      disable: {
-        path: '/flo/:alias/disable',
-        method: 'POST'
-      },
-      flos: {
-        path: '/account/flos',
-        method: 'GET'
-      },
-      schedule: {
-        path: '/flo/:alias/schedule',
-        method: 'POST'
-      },
-      retry: {
-        path: '/flo/:alias/retry',
-        method: 'POST'
-      },
-      inputs: {
-        path: '/flo/:alias/inputs',
-        method: 'GET'
-      },
-      groups: {
-        path: '/user/orgs',
-        method: 'GET'
-      },
-      createRule : {
-        path: '/rule',
-        method: 'POST'
-      },
-      readRule: {
-        path: '/rule/:id',
-        method: 'GET'
-      },
-      updateRule : {
-        path: '/rule/:id',
-        method: 'PUT'
-      },
-      deleteRule: {
-        path: '/rule/:id',
-        method: 'DELETE'
-      },
-      readAllRules : {
-        path: '/rules',
-        method: 'GET'
-      },
-      linkRuleAndFlo: {
-        path: '/rule/:ruleId/associate/:floId',
-        method: 'POST'
-      }
-    };
+    return routes;
   } // End of route declarations
 
 } // End of Azuqua class declaration
