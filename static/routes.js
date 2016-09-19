@@ -1,3 +1,8 @@
+// Export of all the methods that src/azuqua.js will hit
+// Each route has related path and method. These methods are the
+// 'recommended' method for the route but not necesarrily the only
+// method the route excepts.
+// For example, API will access GET and POST for reading a flo
 module.exports = {
   readFlo: {
     path: '/flo/:alias/read',

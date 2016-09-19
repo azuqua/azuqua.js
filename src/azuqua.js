@@ -86,6 +86,7 @@ function handleErrorCallback(cb) {
   };
 }
 
+// Helper function that will format the desired endpoint for the flo's alias
 function makeAliasEndpoint(flo, endpoint) {
   let alias = typeof flo === 'string' ? flo : flo.alias;
   let endpointWithAlias = endpoint.replace(':alias', alias); 
@@ -97,6 +98,17 @@ class Azuqua {
   /**
    * Creates an azuqua instance with given Access Key and Access Secret
    * @constructor
+   * @example
+   * // Require azuqua.js, exposing the constructor
+   * var Azuqua = require('azuqua');
+   * // Instantiate a new Azuqua instance
+   * var azuqua = new Azuqua('accessKey', 'accessSecret', httpOptions);
+   * // Use azuqua client here.
+   *
+   * // Can also be used with varying number of arguments.
+   * // Here no arguments are passed. accessKey and secret are attempted to be loaded in from
+   * // AZUQUA_ACCESS_KEY and AZUQUA_ACCESS_SECRET env variables or loaded in later with loadConfig()
+   * var azuqua = new Azuqua();
    * @param {string} accessKey - The access key associated with the Azuqua account
    * @param {string} accessSecret - The access secret associated with the Azuqua account
    * @param {object} [httpOptions] - An httpOptions object to override default httpOptions
@@ -586,6 +598,10 @@ class Azuqua {
    * @param {object} [_params] - Additional params that will be parsed and passed to the request (Incldues data that will be passed onto invoked flo)
    */
   makeRequest(_method, _path, _params = {}) {
+    // This method trys to be smart about params passed to build the request
+    // So it will look at params, and the HTTP Method to determine how it should build the hash
+    // _params is an object in the same format that the HTTP endpoint flo get's it's data
+    // AKA - An option body, header and query sub object with any top level data being passed in the HTTP body
     if (!this.account.accessKey || !this.account.accessSecret) {
       return Promise.reject(new Error('Account information not provided'));
     }
