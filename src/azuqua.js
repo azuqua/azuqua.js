@@ -71,6 +71,8 @@ function errorHandler(error) {
     let message = 'There was an error in the request process';
     if (error.message) {
       message = error.message;
+    } else {
+      message += '. ' + JSON.stringify(error);
     }
     return Promise.reject({
       type: 'Error',
@@ -668,12 +670,36 @@ class Azuqua {
     }).then(checkResponseError).then(toJSON).catch(errorHandler);
   } // End make request method
 
+  /**
+   * Loads the config at _path into azuqua instance's account settings
+   * @example
+   * // Create 'empty' azuqua instance
+   * var azuqua = new Azuqua();
+   * // Load config from location
+   * azuqua.loadConfig('./path/to/config.js');
+   * // azuqua instance now property configured
+   * @param {string} _path - The path of the config file
+   */
   loadConfig (_path) {
     // Resolve the config path from the requiring parent's location if it's relative
     _path = path.resolve(path.dirname(module.parent.filename), _path);
     this.account = require(_path);
   };
 
+  /**
+   * Async verion of loadConfig
+   * @example
+   * // Create 'empty' azuqua instance
+   * var azuqua = new Azuqua();
+   * // Load config from location
+   * azuqua.loadConfigAsync('./path/to/config.js', function(error, config) {
+   *   // Do something with results here
+   * });
+   * // azuqua instance now property configured
+   * @param {string} _path - The path of the config file
+   * @param {function} cb - Callback to be invoked when config is loaded. Callback is invoked with
+   * error, and config as arguments. 
+   */
   loadConfigAsync (_path, cb) {
     _path = path.resolve(path.dirname(module.parent.filename), _path);
     fs.readFile(_path, (error, data) => {

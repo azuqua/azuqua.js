@@ -78,6 +78,8 @@ function errorHandler(error) {
     var message = 'There was an error in the request process';
     if (error.message) {
       message = error.message;
+    } else {
+      message += '. ' + JSON.stringify(error);
     }
     return Promise.reject({
       type: 'Error',
@@ -93,6 +95,7 @@ function handleErrorCallback(cb) {
   };
 }
 
+// Helper function that will format the desired endpoint for the flo's alias
 function makeAliasEndpoint(flo, endpoint) {
   var alias = typeof flo === 'string' ? flo : flo.alias;
   var endpointWithAlias = endpoint.replace(':alias', alias);
@@ -105,6 +108,17 @@ var Azuqua = function () {
   /**
    * Creates an azuqua instance with given Access Key and Access Secret
    * @constructor
+   * @example
+   * // Require azuqua.js, exposing the constructor
+   * var Azuqua = require('azuqua');
+   * // Instantiate a new Azuqua instance
+   * var azuqua = new Azuqua('accessKey', 'accessSecret', httpOptions);
+   * // Use azuqua client here.
+   *
+   * // Can also be used with varying number of arguments.
+   * // Here no arguments are passed. accessKey and secret are attempted to be loaded in from
+   * // AZUQUA_ACCESS_KEY and AZUQUA_ACCESS_SECRET env variables or loaded in later with loadConfig()
+   * var azuqua = new Azuqua();
    * @param {string} accessKey - The access key associated with the Azuqua account
    * @param {string} accessSecret - The access secret associated with the Azuqua account
    * @param {object} [httpOptions] - An httpOptions object to override default httpOptions
@@ -629,6 +643,10 @@ var Azuqua = function () {
     value: function makeRequest(_method, _path) {
       var _params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
+      // This method trys to be smart about params passed to build the request
+      // So it will look at params, and the HTTP Method to determine how it should build the hash
+      // _params is an object in the same format that the HTTP endpoint flo get's it's data
+      // AKA - An option body, header and query sub object with any top level data being passed in the HTTP body
       if (!this.account.accessKey || !this.account.accessSecret) {
         return Promise.reject(new Error('Account information not provided'));
       }
@@ -691,6 +709,17 @@ var Azuqua = function () {
       }).then(checkResponseError).then(toJSON).catch(errorHandler);
     } // End make request method
 
+    /**
+     * Loads the config at _path into azuqua instance's account settings
+     * @example
+     * // Create 'empty' azuqua instance
+     * var azuqua = new Azuqua();
+     * // Load config from location
+     * azuqua.loadConfig('./path/to/config.js');
+     * // azuqua instance now property configured
+     * @param {string} _path - The path of the config file
+     */
+
   }, {
     key: 'loadConfig',
     value: function loadConfig(_path) {
@@ -700,6 +729,22 @@ var Azuqua = function () {
     }
   }, {
     key: 'loadConfigAsync',
+
+
+    /**
+     * Async verion of loadConfig
+     * @example
+     * // Create 'empty' azuqua instance
+     * var azuqua = new Azuqua();
+     * // Load config from location
+     * azuqua.loadConfigAsync('./path/to/config.js', function(error, config) {
+     *   // Do something with results here
+     * });
+     * // azuqua instance now property configured
+     * @param {string} _path - The path of the config file
+     * @param {function} cb - Callback to be invoked when config is loaded. Callback is invoked with
+     * error, and config as arguments. 
+     */
     value: function loadConfigAsync(_path, cb) {
       var _this2 = this;
 
