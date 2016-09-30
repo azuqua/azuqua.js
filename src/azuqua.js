@@ -65,14 +65,14 @@ function errorHandler(error) {
   if (error.name === 'FetchError') {
     return Promise.reject({
       type : 'FetchError',
-      message: 'Failed to reach requested resource'
+      message: `Failed to reach requested resource (${ error.code })`
     })
   } else {
-    let message = 'There was an error in the request process';
+    let message;
     if (error.message) {
       message = error.message;
     } else {
-      message += '. ' + JSON.stringify(error);
+      message = `There was an error in the request process. ${JSON.stringify(error)}`;
     }
     return Promise.reject({
       type: 'Error',
@@ -222,7 +222,7 @@ class Azuqua {
   } 
 
   read(flo, cb) {
-    console.log(`Calling deprecated method 'read' - please use the 'readFlo method'`);
+    console.log(`Calling deprecated method 'read' - please use the 'readFlo' method`);
     this.readFlo(flo, cb);
   }
 
