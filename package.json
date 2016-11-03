@@ -39,7 +39,7 @@
     "url": "git://github.com/azuqua/azuqua.js"
   },
   "dependencies": {
-    "bluebird": "^1.1.1",
+    "bluebird": "^3.0.0",
     "jsdoc": "git+https://github.com/jsdoc3/jsdoc.git",
     "lodash": "^4.14.1",
     "node-fetch": "^1.5.3"

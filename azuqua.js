@@ -42,10 +42,19 @@ var routes = function () {
  */
 
 // Checks if the response is within error range and if it is - throws an error
+// Error could possible not be JSON so do what we do with toJSON() and first get text then parse
+// If it's not JSON reject with the text and let the error handler handle it
 function checkResponseError(response) {
   if (response.status < 200 || response.status >= 400) {
-    return response.json().then(function (json) {
-      throw json;
+    return response.text().then(function (text) {
+      try {
+        var responseJson = JSON.parse(text);
+        return Promise.reject(responseJson);
+      } catch (e) {
+        var errProxy = { error: text };
+        errProxy.name = 'Azuqua server response error (statusCode < 200 || statusCode > 400)';
+        return Promise.reject(errProxy);
+      }
     });
   } else {
     return response;
@@ -75,16 +84,14 @@ function errorHandler(error) {
       message: 'Failed to reach requested resource (' + error.code + ')'
     });
   } else {
-    var message = void 0;
-    if (error.message) {
-      message = error.message;
-    } else {
-      message = 'There was an error in the request process. ' + JSON.stringify(error);
+    var errProxyObject = _.extend({}, error);
+    if (_.isNil(errProxyObject.name)) {
+      errProxyObject.name = 'Request Error';
     }
-    return Promise.reject({
-      type: 'Error',
-      message: message
-    });
+    if (_.isNil(errProxyObject.message)) {
+      errProxyObject.message = 'There was an error in the request process. ' + JSON.stringify(error) + '.';
+    }
+    return Promise.reject(errProxyObject);
   }
 }
 
