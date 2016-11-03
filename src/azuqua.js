@@ -656,6 +656,9 @@ class Azuqua {
  
 
     let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
+    if (_.isError(authHeaders)) {
+      return Promise.reject(authHeaders);
+    }
 
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
 
@@ -742,13 +745,27 @@ class Azuqua {
       data = JSON.stringify(data);
     }
 
-    // Think this can be simplified
     let pathQueryString;
     if (method === 'GET' || method === 'DELETE') {
       pathQueryString = data || '';
     } else {
       pathQueryString = data || '{}';
     }
+
+
+    try {
+      let pathQueryStringHolder = JSON.parse(pathQueryString);
+      // The query string has all values in string form when it hits the server
+      // So id=833 would need to be id='833' when calculating the hash
+      pathQueryStringHolder = _.mapValues(pathQueryStringHolder, (value) => {
+        return value.toString();
+      })
+      pathQueryString = JSON.stringify(pathQueryStringHolder);
+    } catch(e) { 
+      let errProxy = new Error('Error mapping query string to string values');
+      return errProxy;
+    }
+
 
     let timestamp = new Date().toISOString();
 
