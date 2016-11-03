@@ -4,7 +4,7 @@
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -315,6 +315,34 @@ var Azuqua = function () {
         return Promise.promisify(this.invoke).bind(this)(flo, params);
       }
       var endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path);
+      this.makeRequest('POST', endpoint, params).then(function (json) {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+    }
+
+    /*
+     * Resumes a flo with the given execution id
+     * @param {string} exec - The flo execution id
+     * @param {object} params - An object containing the params needed to invoke the flo
+     * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+     */
+
+  }, {
+    key: 'resume',
+    value: function resume(exec, params, cb) {
+      if (typeof cb !== 'function') {
+        return Promise.promisify(this.resume).bind(this)(exec, params);
+      }
+      exec = exec || params.exec;
+      if (_.isNil(exec)) {
+        return handleErrorCallback(cb)({
+          type: 'Invalid method parameters',
+          message: 'Resume requires an exec in the params object'
+        });
+      }
+      // Resume requires exec, handle special path here
+      var endpoint = Azuqua.routes.resume.path.replace(':exec', exec);
+      delete params.exec;
       this.makeRequest('POST', endpoint, params).then(function (json) {
         cb(null, json);
       }).catch(handleErrorCallback(cb));
@@ -648,7 +676,7 @@ var Azuqua = function () {
   }, {
     key: 'makeRequest',
     value: function makeRequest(_method, _path) {
-      var _params = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+      var _params = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
       // This method trys to be smart about params passed to build the request
       // So it will look at params, and the HTTP Method to determine how it should build the hash

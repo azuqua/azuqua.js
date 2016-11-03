@@ -304,6 +304,32 @@ class Azuqua {
       }).catch(handleErrorCallback(cb));
   }
 
+  /*
+   * Resumes a flo with the given execution id
+   * @param {string} exec - The flo execution id
+   * @param {object} params - An object containing the params needed to invoke the flo
+   * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+   */
+  resume(exec, params, cb) {
+    if (typeof cb !== 'function') {
+      return Promise.promisify(this.resume).bind(this)(exec, params);
+    }
+    exec = exec || params.exec;
+    if (_.isNil(exec)) {
+      return handleErrorCallback(cb)({
+        type: 'Invalid method parameters',
+        message: 'Resume requires an exec in the params object'
+      });
+    }
+    // Resume requires exec, handle special path here
+    let endpoint = Azuqua.routes.resume.path.replace(':exec', exec);
+    delete params.exec;
+    this.makeRequest('POST', endpoint, params)
+      .then((json) => {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+  }
+
   /**
    * Injects data into a flo with the given parameter information
    * @example

@@ -12,6 +12,10 @@ module.exports = {
     path: '/flo/:alias/invoke',
     method: 'POST'
   },
+  resume: {
+    path: '/flo/:exec/resume',
+    method: 'POST'
+  },
   inject: {
     path: '/flo/:alias/inject',
     method: 'POST'
