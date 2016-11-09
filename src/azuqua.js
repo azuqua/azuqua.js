@@ -678,11 +678,13 @@ class Azuqua {
     // Set data
     if (method === 'GET' || method === 'DELETE') {
       data = Object.keys(query).length > 0 ? JSON.stringify(query) : '';
-      body = ''; // API DOESN'T EXCEPT GET WITH BODIES
+      body = ''; // API DOESN'T ACCEPT GET WITH BODIES
     } else {
       data = Object.keys(body).length > 0 ? JSON.stringify(body) : '';
       body = data;
     }
+
+    // Append query information to end of url
     if (Object.keys(query).length > 0) {
       route = route + '?' + querystring.stringify(query);
     }
@@ -690,7 +692,7 @@ class Azuqua {
 
     let authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
     if (_.isError(authHeaders)) {
-      return Promise.reject(authHeaders);
+      throw authHeaders;
     }
 
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
@@ -754,7 +756,7 @@ class Azuqua {
   }
 
   /**
-   * A generic function that generates the headers for a particular request
+   * A static function that generates the headers for a particular request
    * @example
    * // Produce an object with valid API headers generated from params (Notice it's static')
    * Azuqua.generateHeaders('GET', 'flo/:alias/invoke', 'myaccesskey', 'myaccesssecret', {
@@ -781,27 +783,27 @@ class Azuqua {
     let pathQueryString;
     if (method === 'GET' || method === 'DELETE') {
       pathQueryString = data || '';
+      if (!_.isEmpty(pathQueryString)) {
+        try {
+          let pathQueryStringHolder = JSON.parse(pathQueryString);
+          // The query string has all values in string form when it hits the server
+          // So id=833 would need to be id='833' when calculating the hash
+          // This might need changing (If for some reason people are passing in nested...
+          // objects in their query strings
+          pathQueryStringHolder = _.mapValues(pathQueryStringHolder, (value) => {
+            return value.toString();
+          });
+          pathQueryString = JSON.stringify(pathQueryStringHolder, null, 0);
+        } catch(e) { 
+          let errProxy = new Error('Error mapping query string to string values');
+          return errProxy;
+        }
+      }
     } else {
       pathQueryString = data || '{}';
     }
 
 
-    try {
-      if (!_.isEmpty(pathQueryString)) {
-        let pathQueryStringHolder = JSON.parse(pathQueryString);
-        // The query string has all values in string form when it hits the server
-        // So id=833 would need to be id='833' when calculating the hash
-        // TODO: Fix this
-        // TODO: Investigate if we should add back in for GET requests
-        //pathQueryStringHolder = _.mapValues(pathQueryStringHolder, (value) => {
-          //return value.toString();
-        //})
-        pathQueryString = JSON.stringify(pathQueryStringHolder, null, 0);
-      }
-    } catch(e) { 
-      let errProxy = new Error('Error mapping query string to string values');
-      return errProxy;
-    }
 
 
     let timestamp = new Date().toISOString();
