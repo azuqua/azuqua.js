@@ -838,13 +838,17 @@ var Azuqua = function () {
       }
 
       try {
-        var pathQueryStringHolder = JSON.parse(pathQueryString);
-        // The query string has all values in string form when it hits the server
-        // So id=833 would need to be id='833' when calculating the hash
-        pathQueryStringHolder = _.mapValues(pathQueryStringHolder, function (value) {
-          return value.toString();
-        });
-        pathQueryString = JSON.stringify(pathQueryStringHolder);
+        if (!_.isEmpty(pathQueryString)) {
+          var pathQueryStringHolder = JSON.parse(pathQueryString);
+          // The query string has all values in string form when it hits the server
+          // So id=833 would need to be id='833' when calculating the hash
+          // TODO: Fix this
+          // TODO: Investigate if we should add back in for GET requests
+          //pathQueryStringHolder = _.mapValues(pathQueryStringHolder, (value) => {
+          //return value.toString();
+          //})
+          pathQueryString = JSON.stringify(pathQueryStringHolder, null, 0);
+        }
       } catch (e) {
         var errProxy = new Error('Error mapping query string to string values');
         return errProxy;
