@@ -44,6 +44,10 @@ module.exports = {
     path: '/flo/:alias/inputs',
     method: 'GET'
   },
+  outputs: {
+    path: '/flo/:alias/outputs',
+    method: 'GET'
+  },
   groups: {
     path: '/user/orgs',
     method: 'GET'

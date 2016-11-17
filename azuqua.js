@@ -454,15 +454,41 @@ var Azuqua = function () {
     }
 
     /**
+     * Read the outputs of a particular flo
      * @example
-     * // Reads the inputs of a flo
-     * azuqua.inputs('exampleFloAlias').then(function(inputs) {
-     *  // Do something with input data
+     * // Reads the outputs of a flo
+     * azuqua.outputs('exampleFloAlias').then(function(outputs) {
+     *  // Do something with output data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
-     * Returns the orgs related to the particular user
+     * @param {Flo|string} flo - The flo object or alias of a flo
+     * @param {azuquaCallback} [cb] - Callback function that handles the outputs response
+     */
+
+  }, {
+    key: 'outputs',
+    value: function outputs(flo, cb) {
+      if (typeof cb !== 'function') {
+        return Promise.promisify(this.outputs).bind(this)(flo);
+      }
+      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.outputs.path);
+      this.makeRequest('GET', endpoint).then(function (json) {
+        cb(null, json);
+      }).catch(handleErrorCallback(cb));
+    }
+
+    /**
+     * @example
+     * // Retrieves the orgs/groups that the azuqua user belongs to
+     * azuqua.groups('exampleFloAlias').then(function(groups) {
+     *  // Do something with group data
+     * }).catch(function(error) {
+     *  // Handle the error
+     *  console.log('Error: ', error);
+     * })
+     * Returns the orgs/groups related to the particular user
      * @param {azuquaCallback} [cb] - Callback function that handles the groups response
      */
 
