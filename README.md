@@ -1,3 +1,5 @@
+THIS IS A V2 JS CLIENT - WORK IN PROGRESS
+
 Azuqua Node.js client
 =====================
 
@@ -9,26 +11,28 @@ For full API documentation please visit [developer.azuqua.com]("https//developer
 `npm install azuqua`
 
 In order to make API requests you will need both your accessKey and accessSecret.
-These can also be found on your account information page. 
+These can also be found on your account information page.
 
 ### Usage
 
 All asynchronous functions can return a promise if you prefer that pattern.
-When you call an asynchronous function and 
+When you call an asynchronous function and
 leave the callback undefined it will return a promise.
-By default Azuqua uses bluebird.
+By default Azuqua uses bluebird as its promise library.
 
-```
-var async  = require("async"),
-    config = require("./config.json"),
-    Azuqua = require("azuqua");
+```javascript
+var async  = require("async");
+var config = require("./config.json");
+var Azuqua = require("azuqua");
 
+// Overriding httpOptions is option
 var httpOptions = {
   host: "api.azuqua.com", // URL of the api for your instance
   port: 443,
   protocol: "https"
 };
 
+// Create a new instance of an Azuqua client
 var azuqua = new Azuqua(
   // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
   config.accessKey,
@@ -36,26 +40,47 @@ var azuqua = new Azuqua(
   httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
 );
 
-// invoke all your flos
+// Read all flos and then invoke them
 var data = { a: 1 };
-azuqua.flos(function(error, flos){
-	async.each(flos, function(flo, callback){
-		azuqua.invoke(flo, data, function(err, resp){
-			if(err){
+azuqua.flos(function (error, flos) {
+	async.each(flos, function (flo, callback) {
+		azuqua.invoke(flo, data, function (err, resp) {
+			if (err) {
 				console.log("Error invoking flo!", flo, err);
 				callback(err);
-			}else{
+			} else {
 				console.log("Flo returned: ", resp);
 				callback();
 			}
 		});
-	}, function(err){
+	}, function (err) {
 		if(err)
 			console.log("Flo invocation loop stopped!", err);
 		else
 			console.log("Finished invoking flos!");
 	});
 });
+
+// Of course, promises are supported too...
+var data = { a : 1 };
+azuqua.flos()
+  .then(function (flos) {
+    var firstFlo = flos.pop();
+    return azuqua.invoke(firstFlo, { data : { name : Azuqua } })
+  }).then(function (response) {
+    console.log('Got a response from invoking a flo!', response);
+  }).catch(function (error) {
+    console.log('Uh oh! We got an error');
+  })
+
+// Version 2 also supports custom requests via the static makeRequests method
+azuqua.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
+  .then(function (response) {
+    console.log('Here!');
+    console.log(response.name);
+  }).catch(function (error) {
+    console.log('Error: ', error);
+  });
 
 ```
 LICENSE - "MIT License"
