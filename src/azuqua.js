@@ -12,9 +12,6 @@ const fetch = require('node-fetch');
 const Promise = require('bluebird');
 const _ = require('lodash');
 
-// Use bluebird for promises
-fetch.Promise = Promise;
-
 // Local Requires
 // Explination: Conditionally load routes try local but if run from src, load from another path
 const routes = require('../static/routes');
@@ -56,10 +53,9 @@ function toJSON(response) {
         let responseJson = JSON.parse(text);
         return Promise.resolve(responseJson);
       } catch (e) {
-        return Promise.reject({ 
-          type : 'ResponseParsingError',
-          message : `Error trying to parse the following server response as JSON: ${text}`
-        });
+        let errProxy = new Error(`Error trying to parse the following server response as JSON: ${text}`)
+        errProxy.type = 'ResponseParsingError';
+        throw errProxy;
       }
     }) 
 }
@@ -67,10 +63,9 @@ function toJSON(response) {
 // errorHandler for network/fetch errors. Provides a bit more information to the user
 function errorHandler(error) {
   if (error.name === 'FetchError') {
-    return Promise.reject({
-      type : 'FetchError',
-      message: `Failed to reach requested resource (${ error.code })`
-    })
+    let errProxy = new Error(`Failed to reach requested resource (${error.code})`);
+    errProxy.type = 'FetchError';
+    throw errProxy;
   } else {
     let errProxyObject = _.extend({}, error);
     if (_.isNil(errProxyObject.name)) {
@@ -79,15 +74,8 @@ function errorHandler(error) {
     if (_.isNil(errProxyObject.message)) {
       errProxyObject.message = `There was an error in the request process. ${JSON.stringify(error)}.`;
     }
-    return Promise.reject(errProxyObject);
+    throw errProxyObject;
   }
-}
-
-// Basic ending error function - easy single point of access for more complex error handling
-function handleErrorCallback(cb) {
-  return function(error) {
-    cb(error, null);
-  };
 }
 
 // Helper function that will format the desired endpoint for the flo's alias
@@ -620,14 +608,14 @@ class Azuqua {
     let requestUrl = `${this.protocol}://${this.httpOptions.host}:${this.httpOptions.port}${route}`;
 
     // The .then basically triggers the error handler on our flo methods
-    return fetch(requestUrl, {
+    return Promise.resolve(fetch(requestUrl, {
       method: method,
       headers : {
         ...headers,
         ...authHeaders,
       },
       body : body
-    }).then(checkResponseError).then(toJSON).catch(errorHandler);
+    })).then(checkResponseError).then(toJSON).catch(errorHandler);
   } // End make request method
 
   /**
@@ -687,15 +675,12 @@ class Azuqua {
           pathQueryString = JSON.stringify(pathQueryStringHolder, null, 0);
         } catch(e) { 
           let errProxy = new Error('Error mapping query string to string values');
-          return errProxy;
+          throw errProxy;
         }
       }
     } else {
       pathQueryString = data || '{}';
     }
-
-
-
 
     let timestamp = new Date().toISOString();
 
