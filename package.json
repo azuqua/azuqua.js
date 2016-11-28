@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "bluebird": "^3.0.0",
-    "jsdoc": "git+https://github.com/jsdoc3/jsdoc.git",
+    "jsdoc": "3.4.3",
     "lodash": "^4.14.1",
     "node-fetch": "^1.5.3"
   },
