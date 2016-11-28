@@ -17,13 +17,8 @@ fetch.Promise = Promise;
 
 // Local Requires
 // Explination: Conditionally load routes try local but if run from src, load from another path
-const routes = (() => {
-  try {
-    return require('./static/routes')
-  } catch (e) {
-    return require('../static/routes')
-  }
-})();
+const routes = require('../static/routes');
+const readDeprecationWarning = _.once(() => console.log('Read is deprecated. Please use readFlo instead'));
 
 /**
  * `AzuquaCallback`
@@ -41,11 +36,11 @@ function checkResponseError(response) {
       .then((text) => {
         try {
           let responseJson = JSON.parse(text);
-          return Promise.reject(responseJson);
+          throw responseJson;
         } catch (e) {
           let errProxy = { error : text };
           errProxy.name = 'Azuqua server response error (statusCode < 200 || statusCode > 400)';
-          return Promise.reject(errProxy);
+          throw errProxy;
         }
       });
   } else {
@@ -137,6 +132,7 @@ class Azuqua {
     // Cached Flos
     this._flos = null;
 
+    // Enviroment Variable Logic
     if (arguments.length === 0 || arguments.length === 1) {
       // Default constructor - Look at env for key and secret
       // Could always load later with loadConfig
@@ -208,29 +204,17 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles flos response
    */
   flos(force, params, cb) {
-    if (typeof force === 'function') {
-      cb = force;
-      force = false;
-      params = {};
-    } else if (typeof params === 'function') {
-      cb = params;
-      params = {};
-    } else if (typeof force !== 'function' && typeof cb !== 'function' && typeof params !== 'function') {
-      return Promise.promisify(this.flos).bind(this)(force, params);
-    }
-    if (!force && this._flos !== null) {
-      return cb(null, this._flos);
-    }
-    this.makeRequest('GET', '/account/flos', { query : params })
+    return this.makeRequest('GET', '/account/flos', { query : params })
       .then((json) => {
         this._flos = json.map((flo) => new Flo(flo));
-        cb(null, this._flos);
-      }).catch(handleErrorCallback(cb));
+        return json;
+      })
+      .asCallback(cb);
   } 
 
-  read(flo, cb) {
-    console.log(`Calling deprecated method 'read' - please use the 'readFlo' method`);
-    this.readFlo(flo, cb);
+  read(...args) {
+    readDeprecationWarning();
+    return this.readFlo(...args);
   }
 
   /**
@@ -247,14 +231,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles read response
    */
   readFlo(flo, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.read).bind(this)(flo);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFlo.path);
-    this.makeRequest('GET', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -294,40 +273,22 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
    */
   invoke(flo, params, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.invoke).bind(this)(flo, params);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path);
-    this.makeRequest('POST', endpoint, params)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', endpoint, params)
+      .asCallback(cb);
   }
 
   /*
    * Resumes a flo with the given execution id
+   * @param {Flo|string} flo - The flo object or alias of a flo
    * @param {string} exec - The flo execution id
    * @param {object} params - An object containing the params needed to invoke the flo
    * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
    */
-  resume(exec, params, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.resume).bind(this)(exec, params);
-    }
-    exec = exec || params.exec;
-    if (_.isNil(exec)) {
-      return handleErrorCallback(cb)({
-        type: 'Invalid method parameters',
-        message: 'Resume requires an exec in the params object'
-      });
-    }
-    // Resume requires exec, handle special path here
-    let endpoint = Azuqua.routes.resume.path.replace(':exec', exec);
-    delete params.exec;
-    this.makeRequest('POST', endpoint, params)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+  resume(flo, exec, params, cb) {
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path).replace(':exec', exec);
+    return this.makeRequest('POST', endpoint, params)
+      .asCallback(cb);
   }
 
   /**
@@ -345,14 +306,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the inject response
    */
   inject(flo, params, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.inject).bind(this)(flo, params);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.inject.path);
-    this.makeRequest('POST', endpoint, params)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', endpoint, params)
+      .asCallback(cb);
   }
 
   /**
@@ -369,14 +325,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the enable response
    */
   enable(flo, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.enable).bind(this)(flo);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.enable.path);
-    this.makeRequest('POST', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -393,14 +344,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the disable response
    */
   disable(flo, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.disable).bind(this)(flo);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.disable.path);
-    this.makeRequest('POST', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -417,14 +363,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the inputs response
    */
   inputs(flo, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.inputs).bind(this)(flo);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.inputs.path);
-    this.makeRequest('GET', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -441,40 +382,26 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles the outputs response
    */
   outputs(flo, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.outputs).bind(this)(flo);
-    }
     let endpoint = makeAliasEndpoint(flo, Azuqua.routes.outputs.path);
-    this.makeRequest('GET', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
   }
 
   /**
    * @example
-   * // Retrieves the orgs/groups that the azuqua user belongs to
+   * // Retrieves the org id, name, and associated groups that the azuqua user belongs to
    * azuqua.groups('exampleFloAlias').then(function(groups) {
    *  // Do something with group data
    * }).catch(function(error) {
    *  // Handle the error
    *  console.log('Error: ', error);
    * })
-   * Returns the orgs/groups related to the particular user
+   * Returns an array of org and group data related to the particular user
    * @param {azuquaCallback} [cb] - Callback function that handles the groups response
    */
   groups(params, cb) {
-    if (typeof params === 'function') {
-      cb = params;
-      params = {};
-    }
-    if (typeof params !== 'function' && typeof cb !== 'function') {
-      return Promise.promisify(this.groups).bind(this)(params);
-    }
-    this.makeRequest('GET', Azuqua.routes.groups.path, { query : params })
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', Azuqua.routes.groups.path, { query : params })
+      .asCallback(cb);
   }
 
   /**
@@ -502,13 +429,8 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles create response
    */
   createRule(rule, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.createRule).bind(this)(rule);
-    }
-    this.makeRequest('POST', '/rule', { rule : rule })
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', '/rule', { rule : rule })
+      .asCallback(cb);
   }
   
   /**
@@ -525,14 +447,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles read response
    */
   readRule(id, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.readRule).bind(this)(id);
-    }
     let endpoint =  Azuqua.routes.readRule.path.replace(':id', id);
-    this.makeRequest('GET', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -558,14 +475,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles update response
    */
   updateRule(id, rule, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.updateRule).bind(this)(id, rule);
-    }
     let endpoint =  Azuqua.routes.updateRule.path.replace(':id', id);
-    this.makeRequest('PUT', endpoint, { rule : rule })
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('PUT', endpoint, { rule : rule })
+      .asCallback(cb);
   }
 
   /**
@@ -581,20 +493,15 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles readAllRules response
    */
   readAllRules(cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.readAllRules).bind(this)();
-    }
     let endpoint =  Azuqua.routes.readAllRules.path;
-    this.makeRequest('GET', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
   }
 
   /**
    * Deletes an Azuqua rule
    * @example
-   * // Creates and returns a rule object representing a particular rule
+   * // Deletes a rule
    * azuqua.deleteRule(rule).then(function(rule) {
    *  // Do something with response (Rule was deleted)
    * }).catch(function(error) {
@@ -605,14 +512,9 @@ class Azuqua {
    * @param {azuquaCallback} [cb] - Callback function that handles delete response
    */
   deleteRule(id, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.deleteRule).bind(this)(id);
-    }
     let endpoint =  Azuqua.routes.deleteRule.path.replace(':id', id);
-    this.makeRequest('DELETE', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('DELETE', endpoint)
+      .asCallback(cb);
   }
 
   /**
@@ -627,25 +529,19 @@ class Azuqua {
    * })
    * @param {integer} ruleId - The ID of the rule to link
    * @param {integer} floId - The ID of the flo to link
-   * @param {azuquaCallback} [cb] - Callback function that handles delete response
+   * @param {azuquaCallback} [cb] - Callback function that handles the linkRuleAndFlo response
    */
   linkRuleAndFlo(ruleId, floId, cb) {
-    if (typeof cb !== 'function') {
-      return Promise.promisify(this.linkRuleAndFlo).bind(this)(ruleId, floId);
-    }
     let endpoint =  Azuqua.routes.linkRuleAndFlo.path.replace(':ruleId', ruleId).replace(':floId', floId);
-    this.makeRequest('POST', endpoint)
-      .then((json) => {
-        cb(null, json);
-      }).catch(handleErrorCallback(cb));
+    return this.makeRequest('POST', endpoint)
+      .asCallback(cb);
   }
 
   /**
    * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
    * @example
    * // Make a generic request to an azuqua api - signing the request with proper headers
-   * azuqua.makeRequest('GET', 'flo/:alias/invoke',
-   * { alias : 'example alias', data : { name : 'Azuqua', location : 'Seattle' } })
+   * azuqua.makeRequest('GET', 'flo/:alias/invoke', {name: 'Azuqua', location: 'Seattle'})
    *  .then(function(response) {
    *   // Do something with response data
    *  }).catch(function(error) {
@@ -666,7 +562,9 @@ class Azuqua {
     }
 
     let route = _path;
-    let params = _.cloneDeep(_params);
+    let params = {
+      ..._params
+    };
     let method = _method.toUpperCase();
     let headers = {
       'Accept': 'application/json',
@@ -744,40 +642,9 @@ class Azuqua {
    */
   loadConfig (_path) {
     // Resolve the config path from the requiring parent's location if it's relative
-    _path = path.resolve(path.dirname(module.parent.filename), _path);
-    this.account = require(_path);
+    let configPath = path.resolve(path.dirname(module.parent.filename), _path);
+    this.account = require(configPath);
   };
-
-  /**
-   * Async verion of loadConfig
-   * @example
-   * // Create 'empty' azuqua instance
-   * var azuqua = new Azuqua();
-   * // Load config from location
-   * azuqua.loadConfigAsync('./path/to/config.js', function(error, config) {
-   *   // Do something with results here
-   * });
-   * // azuqua instance now property configured
-   * @param {string} _path - The path of the config file
-   * @param {function} cb - Callback to be invoked when config is loaded. Callback is invoked with
-   * error, and config as arguments. 
-   */
-  loadConfigAsync (_path, cb) {
-    _path = path.resolve(path.dirname(module.parent.filename), _path);
-    fs.readFile(_path, (error, data) => {
-      if (error) {
-        cb(error, null);
-      } else {
-        try {
-          let config = JSON.parse(data);
-          this.account = config;
-          cb(null, config);
-        } catch (e) {
-          cb(e, null);
-        }
-      }
-    });
-  }
 
   /**
    * A static function that generates the headers for a particular request
@@ -833,7 +700,7 @@ class Azuqua {
     let timestamp = new Date().toISOString();
 
     let meta = [method.toLowerCase(), path, timestamp].join(':') + pathQueryString;
-    let hash = crypto.createHmac('sha256', accessSecret).update(new Buffer(meta, 'utf-8')).digest('hex');
+    let hash = crypto.createHmac('sha256', accessSecret).update(Buffer.from(meta, 'utf-8')).digest('hex');
 
     return {
       'x-api-hash' : hash,
@@ -849,20 +716,20 @@ class Azuqua {
 
 } // End of Azuqua class declaration
 
-/**
- * Class representing a Flo instance
- * @property {String}  id             - ID for the flo.
- * @property {String}  alias          - Alias of the flo.
- * @property {String}  name           - Name of the flo.
- * @property {String}  version        - Version of the flo.
- * @property {Boolean} active         - Value indicating whether a flo has turned on.
- * @property {Boolean} published      - Value indicating whether a flo has been published or not.
- * @property {String}  security_level - Security level access for a flo.
- * @property {String}  client_token   - Client Token for a flo.
- * @property {String}  description    - Flo's description.
- * @property {Date}    created
- * @property {Date}    updated
- * */
+///**
+// * Class representing a Flo instance
+// * @property {String}  id             - ID for the flo.
+// * @property {String}  alias          - Alias of the flo.
+// * @property {String}  name           - Name of the flo.
+// * @property {String}  version        - Version of the flo.
+// * @property {Boolean} active         - Value indicating whether a flo has turned on.
+// * @property {Boolean} published      - Value indicating whether a flo has been published or not.
+// * @property {String}  security_level - Security level access for a flo.
+// * @property {String}  client_token   - Client Token for a flo.
+// * @property {String}  description    - Flo's description.
+// * @property {Date}    created
+// * @property {Date}    updated
+// * */
 class Flo {
   /**
    * Creates a Flo instance with given Flo data

@@ -13,7 +13,7 @@ module.exports = {
     method: 'POST'
   },
   resume: {
-    path: '/flo/:exec/resume',
+    path: '/flo/:alias/resume/:exec',
     method: 'POST'
   },
   inject: {

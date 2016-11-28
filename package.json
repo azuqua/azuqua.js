@@ -58,5 +58,5 @@
     "gulp-babel": "^6.1.2",
     "gulp-watch": "^4.3.9"
   },
-  "main": "./azuqua"
+  "main": "./dist/azuqua"
 }
