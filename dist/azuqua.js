@@ -102,15 +102,15 @@ var Azuqua = function () {
    * @constructor
    * @example
    * // Require azuqua.js, exposing the constructor
-   * var Azuqua = require('azuqua');
+   * const Azuqua = require('azuqua');
    * // Instantiate a new Azuqua instance
-   * var azuqua = new Azuqua('accessKey', 'accessSecret', httpOptions);
+   * const azuqua = new Azuqua('accessKey', 'accessSecret', httpOptions);
    * // Use azuqua client here.
    *
    * // Can also be used with varying number of arguments.
    * // Here no arguments are passed. accessKey and secret are attempted to be loaded in from
    * // AZUQUA_ACCESS_KEY and AZUQUA_ACCESS_SECRET env variables or loaded in later with loadConfig()
-   * var azuqua = new Azuqua();
+   * const azuqua = new Azuqua();
    * @param {string} accessKey - The access key associated with the Azuqua account
    * @param {string} accessSecret - The access secret associated with the Azuqua account
    * @param {object} [httpOptions] - An httpOptions object to override default httpOptions
@@ -250,22 +250,22 @@ var Azuqua = function () {
      * // This kind of format is good for F1 flos - where all data should be sent through the body
      *
      * // If you're working with the new Azuqua designer you might of noticed you can specify where
-     * data should be taken from on your on demand flos
+     * // data should be taken from on your on demand flos
      * // In that case the client allows you to specify where the params will end up
      * var data = {
      *  headers : {
-     *    'this data' : 'will be attached as additional headers'
+     *    'this data': 'will be attached as additional headers'
      *  },
      *  query : {
-     *    'this data' : 'will be converted to a query string and appended to the URL'
+     *    'this data': 'will be converted to a query string and appended to the URL'
      *  },
      *  body : {
-     *    'and this data' : 'will be send in the body'
+     *    'and this data': 'will be send in the body'
      *  }
-     *  'any additional data' : 'will also be send in the body object'
+     *  'any additional data': 'will also be send in the body object'
      * }
      * // Invokes a flo with given data
-     * azuqua.invoke('exampleFloAlias', { 'name' : 'Azuqua' }).then(function(response) {
+     * azuqua.invoke('exampleFloAlias', {'name': 'Azuqua'}).then(function(response) {
      *  // Do something with invoke response
      * }).catch(function(error) {
      *  // Handle the invoke error
@@ -302,7 +302,7 @@ var Azuqua = function () {
      * Injects data into a flo with the given parameter information
      * @example
      * // Injects a flo with given data
-     * azuqua.inject('exampleFloAlias', { 'name' : 'Azuqua' }).then(function(response) {
+     * azuqua.inject('exampleFloAlias', {'name': 'Azuqua'}).then(function(response) {
      *  // Do something with inject response
      * }).catch(function(error) {
      *  // Handle the inject error
@@ -321,7 +321,7 @@ var Azuqua = function () {
     }
 
     /**
-     * Enables a flo
+     * Enables a flo (Turns on)
      * @example
      * // Enables the flo or flo with alias
      * azuqua.enable('exampleFloAlias').then(function(response) {
@@ -342,7 +342,7 @@ var Azuqua = function () {
     }
 
     /**
-     * Disables a flo
+     * Disables a flo (Turns off)
      * @example
      * // Disables the flo or flo with alias
      * azuqua.disable('exampleFloAlias').then(function(response) {
@@ -430,12 +430,18 @@ var Azuqua = function () {
      *   'conditions': {
      *     'identifiers': [],
      *     'expr': 'avg(.data.outside.temp) > 30 and .data.humidity < 20',
-     *     'scope': 'user',
+     *     'scope': {
+     *       'type': 'org',
+     *       'id': '[org_id_here]',
+     *       'clauses': []
+     *     },
      *     'id': my_id
      *   },
-     *   'policy': '',
      *   'org_id': my_org_id,
-     *   'user_id': my_id
+     *   'user_id': my_id,
+     *   'partner_id': my_partner_id,
+     *   'active': true,
+     *   'policy': 'placeholder-policy'
      * }
      * // Creates and returns a rule object representing a particular rule
      * azuqua.createRule(rule).then(function(rule) {
@@ -481,8 +487,6 @@ var Azuqua = function () {
      * var rule = {
      *   'conditions': {
      *     'expr': 'avg(.data.inside.temp) < 50',
-     *     'scope': 'flo',
-     *     'id': flo_id
      *   },
      *   'policy': 'Let's update the policy!',
      * }
@@ -529,7 +533,7 @@ var Azuqua = function () {
      * Deletes an Azuqua rule
      * @example
      * // Deletes a rule
-     * azuqua.deleteRule(rule).then(function(rule) {
+     * azuqua.deleteRule(rule_id).then(function(rule) {
      *  // Do something with response (Rule was deleted)
      * }).catch(function(error) {
      *  // Handle error
@@ -550,7 +554,7 @@ var Azuqua = function () {
      * @example
      * Links a Azuqua rule to a flo by each respective ID
      * // Links a rule to a flo and returns the rule
-     * azuqua.linkRuleAndFlo(rule).then(function(rule) {
+     * azuqua.linkRuleAndFlo(rule_id, flo_id).then(function(rule) {
      *  // Do something with response (Rule was linked)
      * }).catch(function(error) {
      *  // Handle error
@@ -572,7 +576,7 @@ var Azuqua = function () {
      * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
      * @example
      * // Make a generic request to an azuqua api - signing the request with proper headers
-     * azuqua.makeRequest('GET', 'flo/:alias/invoke', {name: 'Azuqua', location: 'Seattle'})
+     * azuqua.makeRequest('GET', 'flo/randomaliashere/invoke', {name: 'Azuqua', location: 'Seattle'})
      *  .then(function(response) {
      *   // Do something with response data
      *  }).catch(function(error) {
