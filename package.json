@@ -1,7 +1,7 @@
 {
   "name": "azuqua",
   "description": "The official node.js Azuqua API client library.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "Azuqua",
   "keywords": [
     "azuqua"

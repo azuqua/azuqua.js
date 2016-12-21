@@ -393,6 +393,57 @@ class Azuqua {
   }
 
   /**
+   * @example
+   * // Read IO telemetry data for each step in a flo execution sorted by the execution order;
+   * azuqua.readFloExecutionTelemetry('exampleFloAlias', 'exampleFloExec').then(function(data) {
+   *  // Do something with execution data
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
+   * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+   */
+  readFloExecutionTelemetry(flo, exec, cb) {
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloExecutionTelemetry.path).replace(':exec', exec);
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
+  }
+
+  /**
+   * @example
+   * // Read computed metrics about a flo execution such as latency between components and latency per step
+   * azuqua.readFloExecutionMetrics('exampleFloAlias', 'exampleFloExec').then(function(data) {
+   *  // Do something with execution data
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
+   * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+   */
+  readFloExecutionMetrics(flo, exec, cb) {
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloExecutionMetrics.path).replace(':exec', exec);
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
+  }
+
+  /**
+   * @example
+   * // Reads past executions of a flo
+   * azuqua.readFloExecutionTelemetry('exampleFloAlias').then(function(data) {
+   *  // Do something past executions
+   * }).catch(function(error) {
+   *  // Handle the error
+   *  console.log('Error: ', error);
+   * })
+   * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+   */
+  readFloPastExecutions(flo, cb) {
+    let endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloPastExecutions.path);
+    return this.makeRequest('GET', endpoint)
+      .asCallback(cb);
+  }
+
+  /**
    * Create an Azuqua rule
    * @example
    * var rule = {

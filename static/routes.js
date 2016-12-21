@@ -50,6 +50,18 @@ module.exports = {
     path: '/flo/:alias/outputs',
     method: 'GET'
   },
+  readFloExecutionTelemetry: {
+    path: '/telemetry/:alias/:exec/data',
+    method: 'GET'
+  },
+  readFloExecutionMetrics: {
+    path: '/telemetry/:alias/:exec/metrics',
+    method: 'GET'
+  },
+  readFloPastExecutions: {
+    path: '/telemetry/:alias/executions',
+    method: 'GET'
+  },
   groups: {
     path: '/user/orgs',
     method: 'GET'
