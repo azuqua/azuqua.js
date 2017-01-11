@@ -89,5 +89,9 @@ module.exports = {
   linkRuleAndFlo: {
     path: '/rule/:ruleId/associate/:floId',
     method: 'POST'
+  },
+  getOrgConnectors: {
+    path: '/connectors/:orgId',
+    method: 'GET'
   }
 };

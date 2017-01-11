@@ -561,6 +561,7 @@ class Azuqua {
   }
 
   /**
+   * Links a rule and flo
    * @example
    * Links a Azuqua rule to a flo by each respective ID
    * // Links a rule to a flo and returns the rule
@@ -577,6 +578,25 @@ class Azuqua {
   linkRuleAndFlo(ruleId, floId, cb) {
     let endpoint =  Azuqua.routes.linkRuleAndFlo.path.replace(':ruleId', ruleId).replace(':floId', floId);
     return this.makeRequest('POST', endpoint)
+      .asCallback(cb);
+  }
+
+  /**
+   * Gets meta information about connectors in an org
+   * @example
+   * // Gets meta information about connectors an org has access to
+   * azuqua.connectors(orgId).then(function(connectors) {
+   *  // Do something with response (Array of connectors)
+   * }).catch(function(error) {
+   *  // Handle error
+   *  console.log('Error: ', error);
+   * })
+   * @param {integer} orgId - The ID (of an org you belong to) of the org to read
+   * @param {azuquaCallback} [cb] - Callback function that handles the response
+   */
+  getOrgConnectors(orgId, cb) {
+    let endpoint =  Azuqua.routes.getOrgConnectors.path.replace(':orgId', orgId).replace(':orgId', orgId);
+    return this.makeRequest('GET', endpoint)
       .asCallback(cb);
   }
 
