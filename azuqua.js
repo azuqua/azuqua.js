@@ -212,14 +212,14 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
         resp.body = JSON.parse(resp.body);
       }
       catch(e){
-        return callback(resp.body, null, metadata);
+        return callback(resp.body, null, metadata, resp.body);
       }
 
       if(resp.body.error) {
-        callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error), null, metadata);
+        callback(new Error(resp.body.error.message ? resp.body.error.message : resp.body.error), null, metadata, resp.body);
       }
       else {
-        callback(null, resp.body, metadata);
+        callback(null, resp.body, metadata, resp.body);
       }
     });
   };
