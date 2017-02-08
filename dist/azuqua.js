@@ -405,6 +405,27 @@ var Azuqua = function () {
     }
 
     /**
+     * Read the swaggerDefinition of a particular flo
+     * @example
+     * // Reads the swaggerDefinition of a flo
+     * azuqua.swaggerDefinition('exampleFloAlias').then(function(outputs) {
+     *  // Do something with swaggerDefinition
+     * }).catch(function(error) {
+     *  // Handle the error
+     *  console.log('Error: ', error);
+     * })
+     * @param {Flo|string} flo - The flo object or alias of a flo
+     * @param {azuquaCallback} [cb] - Callback function that handles the swaggerDefinition response
+     */
+
+  }, {
+    key: 'swaggerDefinition',
+    value: function swaggerDefinition(flo, cb) {
+      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.swaggerDefinition.path);
+      return this.makeRequest('GET', endpoint).asCallback(cb);
+    }
+
+    /**
      * @example
      * // Retrieves the org id, name, and associated groups that the azuqua user belongs to
      * azuqua.groups('exampleFloAlias').then(function(groups) {

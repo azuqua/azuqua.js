@@ -50,6 +50,10 @@ module.exports = {
     path: '/flo/:alias/outputs',
     method: 'GET'
   },
+  swaggerDefinition: {
+    path: '/flo/:alias/swaggerDefinition',
+    method: 'GET'
+  },
   readFloExecutionTelemetry: {
     path: '/telemetry/:alias/:exec/data',
     method: 'GET'
