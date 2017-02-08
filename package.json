@@ -1,7 +1,7 @@
 {
   "name": "azuqua",
   "description": "The official node.js Azuqua API client library.",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "author": "Azuqua",
   "keywords": [
     "azuqua"
@@ -18,6 +18,10 @@
     {
       "name": "Osmond Gunarso",
       "url": "osmond@azuqua.com"
+    },
+    {
+      "name": "Holden Stegman",
+      "url": "holden@azuqua.com"
     }
   ],
   "licenses": [
@@ -27,25 +31,32 @@
     }
   ],
   "scripts": {
-    "test": "grunt test"
+    "test": "grunt test",
+    "docs": "jsdoc src ./src/azuqua.js -d docs"
   },
   "repository": {
     "type": "git",
     "url": "git://github.com/azuqua/azuqua.js"
   },
   "dependencies": {
-    "async": "~0.2.10",
-    "underscore": "~1.6.0",
-    "bluebird": "~1.1.1",
-    "restjs": "git://github.com/azuqua/restjs.git"
+    "bluebird": "^3.0.0",
+    "jsdoc": "3.4.3",
+    "lodash": "^4.14.1",
+    "node-fetch": "^1.5.3"
   },
   "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "babel-preset-es2016": "^6.11.3",
+    "babel-preset-stage-2": "^6.13.0",
     "chai": "*",
     "docco": "*",
     "grunt": "~0.4.2",
     "grunt-contrib-clean": "~0.5.0",
     "grunt-contrib-jshint": "~0.8.0",
-    "grunt-mocha-test": "~0.9.4"
+    "grunt-mocha-test": "~0.9.4",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-watch": "^4.3.9"
   },
-  "main": "./azuqua"
+  "main": "./dist/azuqua"
 }
