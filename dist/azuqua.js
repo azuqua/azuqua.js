@@ -749,12 +749,13 @@ var Azuqua = function () {
         route = route + '?' + querystring.stringify(query);
       }
 
-      var authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
+      var requestUrl = this.protocol + '://' + this.httpOptions.host + ':' + this.httpOptions.port + route;
+
+      var authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data, requestUrl);
       if (_.isError(authHeaders)) {
         throw authHeaders;
       }
 
-      var requestUrl = this.protocol + '://' + this.httpOptions.host + ':' + this.httpOptions.port + route;
 
       // The .then basically triggers the error handler on our flo methods
       return Promise.resolve(fetch(requestUrl, {
@@ -801,7 +802,7 @@ var Azuqua = function () {
      * @param {string} accessSecret - The requesters access secret
      * @param {object} [data] - Additional data needed for the hash (if applicable)
      */
-    value: function generateHeaders(method, path, accessKey, accessSecret, data) {
+    value: function generateHeaders(method, path, accessKey, accessSecret, data, fullUrl) {
       // Default params don't override null and we can't send null data
       if (!data) {
         data = '';
@@ -831,19 +832,45 @@ var Azuqua = function () {
           }
         }
       } else {
-        pathQueryString = data || '{}';
+        pathQueryString = '';
+        //pathQueryString = data === '{}' ? '' : data || '{}';
       }
 
       var timestamp = new Date().toISOString();
 
-      var meta = [method.toLowerCase(), path, timestamp].join(':') + pathQueryString;
+      //var meta = [method.toLowerCase(), path, timestamp].join(':') + pathQueryString;
+      var meta = [method.toLowerCase(), fullUrl, timestamp].join(':') + pathQueryString;
+      console.log(meta);
       var hash = crypto.createHmac('sha256', accessSecret).update(Buffer.from(meta, 'utf-8')).digest('hex');
 
+      //console.log(meta);
+      //console.log({
+        //'x-client-sig': hash,
+        //'x-client-key': accessKey,
+        //'x-client-timestamp': timestamp
+      //});
+
+      //return {
+        //'x-client-sig': hash,
+        //'x-client-key': accessKey,
+        //'x-client-timestamp': timestamp
+      //};
+
+      console.log(meta);
+      console.log({
+        'x-api-sig': hash,
+        'x-api-key': accessKey,
+        'x-api-timestamp': timestamp,
+        'x-api-client-type': 'USER'
+      });
+
       return {
-        'x-api-hash': hash,
-        'x-api-accesskey': accessKey,
-        'x-api-timestamp': timestamp
+        'x-api-sig': hash,
+        'x-api-key': accessKey,
+        'x-api-timestamp': timestamp,
+        'x-api-client-type': 'USER'
       };
+
     } // End of generateHeaders
 
     // Declare routes
