@@ -1,9 +1,10 @@
 Azuqua Node.js client
 =====================
 
-This library provides an easy interface for interacting with your Azuqua flos.
+Version 3 of the client (this version) is intented to be used to interact solely with version 2 of the Azuqua API.
+
+This library provides an easy interface for interacting with your Azuqua account and information.
 The Azuqua API is directly exposed to developers should you wish to write your own library.
-For full API documentation please visit [developer.azuqua.com]("https//developer.azuqua.com")
 
 ### Installation:
 `npm install azuqua`
@@ -13,77 +14,47 @@ These can also be found on your account information page.
 
 ### Usage
 
-All asynchronous functions can return a promise if you prefer that pattern.
-When you call an asynchronous function and
-leave the callback undefined it will return a promise.
+All functions return a promise.
 By default Azuqua uses bluebird as its promise library.
 
 ```javascript
-var async  = require("async");
-var config = require("./config.json");
-var Azuqua = require("azuqua");
+const Azuqua = require('./dist/azuqua.js');
 
-// Overriding httpOptions is option
-var httpOptions = {
-  host: "api.azuqua.com", // URL of the api for your instance
-  port: 443,
-  protocol: "https"
+const httpOptions = {
+  host: 'api.azuqua.com',
+  port: 443
 };
 
-// Create a new instance of an Azuqua client
-var azuqua = new Azuqua(
-  // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
-  config.accessKey,
-  config.accessSecret,
-  httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
-);
-
-// Read all flos and then invoke them
-var data = { a: 1 };
-azuqua.flos(function (error, flos) {
-	async.each(flos, function (flo, callback) {
-		azuqua.invoke(flo, data, function (err, resp) {
-			if (err) {
-				console.log("Error invoking flo!", flo, err);
-				callback(err);
-			} else {
-				console.log("Flo returned: ", resp);
-				callback();
-			}
-		});
-	}, function (err) {
-		if(err)
-			console.log("Flo invocation loop stopped!", err);
-		else
-			console.log("Finished invoking flos!");
-	});
+const azuqua = new Azuqua({
+  accessKey: 'ACCESS_KEY',
+  accessSecret: 'ACCESS_SECRET',
+  httpOptions
 });
 
-// Of course, promises are supported too...
-var data = { a : 1 };
-azuqua.flos()
-  .then(function (flos) {
-    var firstFlo = flos.pop();
-    return azuqua.invoke(firstFlo, { data : { name : Azuqua } })
-  }).then(function (response) {
-    console.log('Got a response from invoking a flo!', response);
-  }).catch(function (error) {
-    console.log('Uh oh! We got an error');
-  })
+const EXAMPLE_ORG_ID = 42;
+const EXAMPLE_GROUP_ID = 10;
 
-// Version 2 also supports custom requests via the static makeRequests method
-azuqua.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
-  .then(function (response) {
-    console.log('Here!');
-    console.log(response.name);
-  }).catch(function (error) {
-    console.log('Error: ', error);
-  });
+// Some examples for doing org management
+azuqua.createGroup({ org_id: EXAMPLE_ORG_ID, name: 'New Group', description: 'This is a group' })
+  .then(console.log)
+  .catch(console.error);
+
+azuqua.readGroup(EXAMPLE_GROUP_ID)
+  .then(console.log)
+  .catch(console.error);
+
+azuqua.updateGroup(EXAMPLE_GROUP_ID, { name: 'New name' })
+  .then(console.log)
+  .catch(console.error);
+
+azuqua.deleteGroup(EXAMPLE_GROUP_ID)
+  .then(console.log)
+  .catch(console.error);
 
 ```
 LICENSE - "MIT License"
 =======================
-Copyright (c) 2014 Azuqua
+Copyright (c) 2017 Azuqua
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
