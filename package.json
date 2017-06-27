@@ -1,29 +1,12 @@
 {
-  "name": "azuqua",
-  "description": "The official node.js Azuqua API client library.",
+  "name": "Kenetix",
+  "description": "The official node.js Kenetix API client library.",
   "version": "2.0.0",
-  "author": "Azuqua",
+  "author": "Kenetix",
   "keywords": [
-    "azuqua"
+    "kenetix"
   ],
-  "contributors": [
-    {
-      "name": "Alec Embke",
-      "url": "alec@azuqua.com"
-    },
-    {
-      "name": "Quy Le",
-      "url": "quy@azuqua.com"
-    },
-    {
-      "name": "Osmond Gunarso",
-      "url": "osmond@azuqua.com"
-    },
-    {
-      "name": "Holden Stegman",
-      "url": "holden@azuqua.com"
-    }
-  ],
+  "contributors": [],
   "licenses": [
     {
       "type": "MIT",
@@ -32,12 +15,9 @@
   ],
   "scripts": {
     "test": "grunt test",
-    "docs": "jsdoc src ./src/azuqua.js -d docs"
+    "docs": "jsdoc src ./src/kenetix.js -d docs"
   },
-  "repository": {
-    "type": "git",
-    "url": "git://github.com/azuqua/azuqua.js"
-  },
+  "repository": {},
   "dependencies": {
     "bluebird": "^3.0.0",
     "jsdoc": "3.4.3",
@@ -58,5 +38,5 @@
     "gulp-babel": "^6.1.2",
     "gulp-watch": "^4.3.9"
   },
-  "main": "./dist/azuqua"
+  "main": "./dist/kenetix"
 }

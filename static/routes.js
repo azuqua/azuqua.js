@@ -1,5 +1,5 @@
 /* 
- Export of all the methods that src/azuqua.js will hit
+ Export of all the methods that src/kenetix.js will hit
 
  Each route has related path and method. 
  These methods are the 'recommended' method for the route but not necesarrily the only method the route excepts.

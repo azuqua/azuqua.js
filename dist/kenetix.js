@@ -11,9 +11,7 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var url = require('url');
-var crypto = require('crypto');
-var querystring = require('querystring');
-var path = require('path');
+var crypto = require('crypto');var querystring = require('querystring');var path = require('path');
 var fs = require('fs');
 
 // External modules
@@ -29,8 +27,8 @@ var readDeprecationWarning = _.once(function () {
 });
 
 /**
- * `AzuquaCallback`
- * @callback azuquaCallback
+ * `KeneticCallback`
+ * @callback kenetixCallback
  * @param {object} Error - An error object containing information about the error
  * @param {object} Response - A response object containing relevant response information
  */
@@ -46,7 +44,7 @@ function checkResponseError(response) {
         throw responseJson;
       } catch (e) {
         var errProxy = { error: text };
-        errProxy.name = 'Azuqua server response error (statusCode < 200 || statusCode > 400)';
+        errProxy.name = 'Kenetix server response error (statusCode < 200 || statusCode > 400)';
         throw errProxy;
       }
     });
@@ -94,29 +92,29 @@ function makeAliasEndpoint(flo, endpoint) {
   return endpointWithAlias;
 }
 
-/** Class representing an Azuqua instance */
+/** Class representing an Kenetix instance */
 
-var Azuqua = function () {
+var Kenetix = function () {
   /**
-   * Creates an azuqua instance with given Access Key and Access Secret
+   * Creates an kenetix instance with given Access Key and Access Secret
    * @constructor
    * @example
-   * // Require azuqua.js, exposing the constructor
-   * const Azuqua = require('azuqua');
-   * // Instantiate a new Azuqua instance
-   * const azuqua = new Azuqua('accessKey', 'accessSecret', httpOptions);
-   * // Use azuqua client here.
+   * // Require kenetix.js, exposing the constructor
+   * const Kenetix = require('kenetix');
+   * // Instantiate a new Kenetix instance
+   * const kenetix = new Kenetix('accessKey', 'accessSecret', httpOptions);
+   * // Use kenetix client here.
    *
    * // Can also be used with varying number of arguments.
    * // Here no arguments are passed. accessKey and secret are attempted to be loaded in from
-   * // AZUQUA_ACCESS_KEY and AZUQUA_ACCESS_SECRET env variables or loaded in later with loadConfig()
-   * const azuqua = new Azuqua();
-   * @param {string} accessKey - The access key associated with the Azuqua account
-   * @param {string} accessSecret - The access secret associated with the Azuqua account
+   * // KENETIX_ACCESS_KEY and KENETIX_ACCESS_SECRET env variables or loaded in later with loadConfig()
+   * const kenetix = new Kenetix();
+   * @param {string} accessKey - The access key associated with the Kenetix account
+   * @param {string} accessSecret - The access secret associated with the Kenetix account
    * @param {object} [httpOptions] - An httpOptions object to override default httpOptions
    */
-  function Azuqua(accessKey, accessSecret, httpOptions) {
-    _classCallCheck(this, Azuqua);
+  function Kenetix(accessKey, accessSecret, httpOptions) {
+    _classCallCheck(this, Kenetix);
 
     // Default Properties
     this.account = {};
@@ -125,7 +123,7 @@ var Azuqua = function () {
 
     this.protocol = 'https';
     this.httpOptions = {
-      host: 'api.azuqua.com',
+      host: 'api.kenetix.io',
       port: 443
     };
 
@@ -142,11 +140,11 @@ var Azuqua = function () {
       if (process.env.ACCESS_SECRET) {
         this.account.accessSecret = process.env.ACCESS_SECRET;
       }
-      if (process.env.AZUQUA_ACCESS_KEY) {
-        this.account.accessKey = process.env.AZUQUA_ACCESS_KEY;
+      if (process.env.KENETIX_ACCESS_KEY) {
+        this.account.accessKey = process.env.KENETIX_ACCESS_KEY;
       }
-      if (process.env.AZUQUA_ACCESS_SECRET) {
-        this.account.accessSecret = process.env.AZUQUA_ACCESS_SECRET;
+      if (process.env.KENETIX_ACCESS_SECRET) {
+        this.account.accessSecret = process.env.KENETIX_ACCESS_SECRET;
       }
       if (arguments.length === 1 && _typeof(arguments[0]) === 'object') {
         // If we have an argument it should be http options
@@ -185,7 +183,7 @@ var Azuqua = function () {
    * Read all flos related to the given user account
    * @example
    * // Returns a list of flo objects - forcing the method to ignore caching
-   * azuqua.flos(true).then(function(flos) {
+   * kenetix.flos(true).then(function(flos) {
    *  flos.forEach(function(flo) {
    *    // Do something with each flo
    *  })
@@ -195,11 +193,11 @@ var Azuqua = function () {
    * })
    * @param {boolean} [force=false] - Option to force flos to ignore cached flos and make new network request
    * @param {object} [params] - Optional information to pass to /account/flos route
-   * @param {azuquaCallback} [cb] - Callback function that handles flos response
+   * @param {kenetixCallback} [cb] - Callback function that handles flos response
    */
 
 
-  _createClass(Azuqua, [{
+  _createClass(Kenetix, [{
     key: 'flos',
     value: function flos(force, params, cb) {
       var _this = this;
@@ -222,20 +220,20 @@ var Azuqua = function () {
      * Read information about a particular flo
      * @example
      * // Returns a flo object representing a particular flo
-     * azuqua.read('exampleFloAlias').then(function(flo) {
+     * kenetix.read('exampleFloAlias').then(function(flo) {
      *  // Do something with flo response
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles read response
+     * @param {kenetixCallback} [cb] - Callback function that handles read response
      */
 
   }, {
     key: 'readFlo',
     value: function readFlo(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFlo.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.readFlo.path);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
@@ -249,7 +247,7 @@ var Azuqua = function () {
      * }
      * // This kind of format is good for F1 flos - where all data should be sent through the body
      *
-     * // If you're working with the new Azuqua designer you might of noticed you can specify where
+     * // If you're working with the new Kenetix designer you might of noticed you can specify where
      * // data should be taken from on your on demand flos
      * // In that case the client allows you to specify where the params will end up
      * var data = {
@@ -265,7 +263,7 @@ var Azuqua = function () {
      *  'any additional data': 'will also be send in the body object'
      * }
      * // Invokes a flo with given data
-     * azuqua.invoke('exampleFloAlias', {'name': 'Azuqua'}).then(function(response) {
+     * kenetix.invoke('exampleFloAlias', {'name': 'Kenetix'}).then(function(response) {
      *  // Do something with invoke response
      * }).catch(function(error) {
      *  // Handle the invoke error
@@ -273,13 +271,13 @@ var Azuqua = function () {
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
      * @param {object} params - An object containing the params needed to invoke the flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+     * @param {kenetixCallback} [cb] - Callback function that handles the invoke response
      */
 
   }, {
     key: 'invoke',
     value: function invoke(flo, params, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.invoke.path);
       return this.makeRequest('POST', endpoint, params).asCallback(cb);
     }
 
@@ -288,13 +286,13 @@ var Azuqua = function () {
      * @param {Flo|string} flo - The flo object or alias of a flo
      * @param {string} exec - The flo execution id
      * @param {object} params - An object containing the params needed to invoke the flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the invoke response
+     * @param {kenetixCallback} [cb] - Callback function that handles the invoke response
      */
 
   }, {
     key: 'resume',
     value: function resume(flo, exec, params, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.invoke.path).replace(':exec', exec);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.invoke.path).replace(':exec', exec);
       return this.makeRequest('POST', endpoint, params).asCallback(cb);
     }
 
@@ -302,7 +300,7 @@ var Azuqua = function () {
      * Injects data into a flo with the given parameter information
      * @example
      * // Injects a flo with given data
-     * azuqua.inject('exampleFloAlias', {'name': 'Azuqua'}).then(function(response) {
+     * kenetix.inject('exampleFloAlias', {'name': 'Kenetix'}).then(function(response) {
      *  // Do something with inject response
      * }).catch(function(error) {
      *  // Handle the inject error
@@ -310,13 +308,13 @@ var Azuqua = function () {
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
      * @param {object} params - An object containing the params needed to inject the flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the inject response
+     * @param {kenetixCallback} [cb] - Callback function that handles the inject response
      */
 
   }, {
     key: 'inject',
     value: function inject(flo, params, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.inject.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.inject.path);
       return this.makeRequest('POST', endpoint, params).asCallback(cb);
     }
 
@@ -324,20 +322,20 @@ var Azuqua = function () {
      * Enables a flo (Turns on)
      * @example
      * // Enables the flo or flo with alias
-     * azuqua.enable('exampleFloAlias').then(function(response) {
+     * kenetix.enable('exampleFloAlias').then(function(response) {
      *  // Do something with enable response
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the enable response
+     * @param {kenetixCallback} [cb] - Callback function that handles the enable response
      */
 
   }, {
     key: 'enable',
     value: function enable(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.enable.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.enable.path);
       return this.makeRequest('POST', endpoint).asCallback(cb);
     }
 
@@ -345,20 +343,20 @@ var Azuqua = function () {
      * Disables a flo (Turns off)
      * @example
      * // Disables the flo or flo with alias
-     * azuqua.disable('exampleFloAlias').then(function(response) {
+     * kenetix.disable('exampleFloAlias').then(function(response) {
      *  // Do something with disable response
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the disable response
+     * @param {kenetixCallback} [cb] - Callback function that handles the disable response
      */
 
   }, {
     key: 'disable',
     value: function disable(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.disable.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.disable.path);
       return this.makeRequest('POST', endpoint).asCallback(cb);
     }
 
@@ -366,20 +364,20 @@ var Azuqua = function () {
      * Read the inputs of a particular flo
      * @example
      * // Reads the inputs of a flo
-     * azuqua.inputs('exampleFloAlias').then(function(inputs) {
+     * kenetix.inputs('exampleFloAlias').then(function(inputs) {
      *  // Do something with input data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the inputs response
+     * @param {kenetixCallback} [cb] - Callback function that handles the inputs response
      */
 
   }, {
     key: 'inputs',
     value: function inputs(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.inputs.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.inputs.path);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
@@ -387,20 +385,20 @@ var Azuqua = function () {
      * Read the outputs of a particular flo
      * @example
      * // Reads the outputs of a flo
-     * azuqua.outputs('exampleFloAlias').then(function(outputs) {
+     * kenetix.outputs('exampleFloAlias').then(function(outputs) {
      *  // Do something with output data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the outputs response
+     * @param {kenetixCallback} [cb] - Callback function that handles the outputs response
      */
 
   }, {
     key: 'outputs',
     value: function outputs(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.outputs.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.outputs.path);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
@@ -408,101 +406,101 @@ var Azuqua = function () {
      * Read the swaggerDefinition of a particular flo
      * @example
      * // Reads the swaggerDefinition of a flo
-     * azuqua.swaggerDefinition('exampleFloAlias').then(function(outputs) {
+     * kenetix.swaggerDefinition('exampleFloAlias').then(function(outputs) {
      *  // Do something with swaggerDefinition
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * @param {Flo|string} flo - The flo object or alias of a flo
-     * @param {azuquaCallback} [cb] - Callback function that handles the swaggerDefinition response
+     * @param {kenetixCallback} [cb] - Callback function that handles the swaggerDefinition response
      */
 
   }, {
     key: 'swaggerDefinition',
     value: function swaggerDefinition(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.swaggerDefinition.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.swaggerDefinition.path);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
      * @example
-     * // Retrieves the org id, name, and associated groups that the azuqua user belongs to
-     * azuqua.groups('exampleFloAlias').then(function(groups) {
+     * // Retrieves the org id, name, and associated groups that the kenetix user belongs to
+     * kenetix.groups('exampleFloAlias').then(function(groups) {
      *  // Do something with group data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
      * Returns an array of org and group data related to the particular user
-     * @param {azuquaCallback} [cb] - Callback function that handles the groups response
+     * @param {kenetixCallback} [cb] - Callback function that handles the groups response
      */
 
   }, {
     key: 'groups',
     value: function groups(params, cb) {
-      return this.makeRequest('GET', Azuqua.routes.groups.path, { query: params }).asCallback(cb);
+      return this.makeRequest('GET', Kenetix.routes.groups.path, { query: params }).asCallback(cb);
     }
 
     /**
      * @example
      * // Read IO telemetry data for each step in a flo execution sorted by the execution order;
-     * azuqua.readFloExecutionTelemetry('exampleFloAlias', 'exampleFloExec').then(function(data) {
+     * kenetix.readFloExecutionTelemetry('exampleFloAlias', 'exampleFloExec').then(function(data) {
      *  // Do something with execution data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
-     * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+     * @param {kenetixCallback} [cb] - Callback function that handles the telemetry response
      */
 
   }, {
     key: 'readFloExecutionTelemetry',
     value: function readFloExecutionTelemetry(flo, exec, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloExecutionTelemetry.path).replace(':exec', exec);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.readFloExecutionTelemetry.path).replace(':exec', exec);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
      * @example
      * // Read computed metrics about a flo execution such as latency between components and latency per step
-     * azuqua.readFloExecutionMetrics('exampleFloAlias', 'exampleFloExec').then(function(data) {
+     * kenetix.readFloExecutionMetrics('exampleFloAlias', 'exampleFloExec').then(function(data) {
      *  // Do something with execution data
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
-     * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+     * @param {kenetixCallback} [cb] - Callback function that handles the telemetry response
      */
 
   }, {
     key: 'readFloExecutionMetrics',
     value: function readFloExecutionMetrics(flo, exec, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloExecutionMetrics.path).replace(':exec', exec);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.readFloExecutionMetrics.path).replace(':exec', exec);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
      * @example
      * // Reads past executions of a flo
-     * azuqua.readFloExecutionTelemetry('exampleFloAlias').then(function(data) {
+     * kenetix.readFloExecutionTelemetry('exampleFloAlias').then(function(data) {
      *  // Do something past executions
      * }).catch(function(error) {
      *  // Handle the error
      *  console.log('Error: ', error);
      * })
-     * @param {azuquaCallback} [cb] - Callback function that handles the telemetry response
+     * @param {kenetixCallback} [cb] - Callback function that handles the telemetry response
      */
 
   }, {
     key: 'readFloPastExecutions',
     value: function readFloPastExecutions(flo, cb) {
-      var endpoint = makeAliasEndpoint(flo, Azuqua.routes.readFloPastExecutions.path);
+      var endpoint = makeAliasEndpoint(flo, Kenetix.routes.readFloPastExecutions.path);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
-     * Create an Azuqua rule
+     * Create an Kenetix rule
      * @example
      * var rule = {
      *   'conditions': {
@@ -522,14 +520,14 @@ var Azuqua = function () {
      *   'policy': 'placeholder-policy'
      * }
      * // Creates and returns a rule object representing a particular rule
-     * azuqua.createRule(rule).then(function(rule) {
+     * kenetix.createRule(rule).then(function(rule) {
      *  // Do something with rule response (Rule was created)
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
      * @param {Rule} rule - The rule object representing the created rule
-     * @param {azuquaCallback} [cb] - Callback function that handles create response
+     * @param {kenetixCallback} [cb] - Callback function that handles create response
      */
 
   }, {
@@ -542,25 +540,25 @@ var Azuqua = function () {
      * Read a particular rule with provided rule id
      * @example
      * 
-     * azuqua.readRule(rule_id).then(function(rule) {
+     * kenetix.readRule(rule_id).then(function(rule) {
      *  // Do something with rule response 
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
      * @param {integer} id - The ID of the rule to read
-     * @param {azuquaCallback} [cb] - Callback function that handles read response
+     * @param {kenetixCallback} [cb] - Callback function that handles read response
      */
 
   }, {
     key: 'readRule',
     value: function readRule(id, cb) {
-      var endpoint = Azuqua.routes.readRule.path.replace(':id', id);
+      var endpoint = Kenetix.routes.readRule.path.replace(':id', id);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
-     * Update an Azuqua rule
+     * Update an Kenetix rule
      * @example
      * var rule = {
      *   'conditions': {
@@ -569,7 +567,7 @@ var Azuqua = function () {
      *   'policy': 'Let's update the policy!',
      * }
      * // Updates and returns a rule object representing a particular rule
-     * azuqua.updateRule(rule_id, rule).then(function(rule) {
+     * kenetix.updateRule(rule_id, rule).then(function(rule) {
      *  // Do something with rule response (Rule was updated)
      * }).catch(function(error) {
      *  // Handle error
@@ -577,63 +575,63 @@ var Azuqua = function () {
      * })
      * @param {integer} id - The ID of the rule to read
      * @param {Rule} rule - The rule object representing the updated rule
-     * @param {azuquaCallback} [cb] - Callback function that handles update response
+     * @param {kenetixCallback} [cb] - Callback function that handles update response
      */
 
   }, {
     key: 'updateRule',
     value: function updateRule(id, rule, cb) {
-      var endpoint = Azuqua.routes.updateRule.path.replace(':id', id);
+      var endpoint = Kenetix.routes.updateRule.path.replace(':id', id);
       return this.makeRequest('PUT', endpoint, { rule: rule }).asCallback(cb);
     }
 
     /**
-     * Reads all the rules associated with the azuqua account
+     * Reads all the rules associated with the kenetix account
      * @example
-     * // Reads all the rules associated with the given azuqua account
-     * azuqua.readAllRules().then(function(rules) {
+     * // Reads all the rules associated with the given kenetix account
+     * kenetix.readAllRules().then(function(rules) {
      *  // Do something with response (Array with all the rules)
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
-     * @param {azuquaCallback} [cb] - Callback function that handles readAllRules response
+     * @param {kenetixCallback} [cb] - Callback function that handles readAllRules response
      */
 
   }, {
     key: 'readAllRules',
     value: function readAllRules(cb) {
-      var endpoint = Azuqua.routes.readAllRules.path;
+      var endpoint = Kenetix.routes.readAllRules.path;
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
-     * Deletes an Azuqua rule
+     * Deletes an Kenetix rule
      * @example
      * // Deletes a rule
-     * azuqua.deleteRule(rule_id).then(function(rule) {
+     * kenetix.deleteRule(rule_id).then(function(rule) {
      *  // Do something with response (Rule was deleted)
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
      * @param {integer} id - The ID of the rule to delete
-     * @param {azuquaCallback} [cb] - Callback function that handles delete response
+     * @param {kenetixCallback} [cb] - Callback function that handles delete response
      */
 
   }, {
     key: 'deleteRule',
     value: function deleteRule(id, cb) {
-      var endpoint = Azuqua.routes.deleteRule.path.replace(':id', id);
+      var endpoint = Kenetix.routes.deleteRule.path.replace(':id', id);
       return this.makeRequest('DELETE', endpoint).asCallback(cb);
     }
 
     /**
      * Links a rule and flo
      * @example
-     * Links a Azuqua rule to a flo by each respective ID
+     * Links a Kenetix rule to a flo by each respective ID
      * // Links a rule to a flo and returns the rule
-     * azuqua.linkRuleAndFlo(rule_id, flo_id).then(function(rule) {
+     * kenetix.linkRuleAndFlo(rule_id, flo_id).then(function(rule) {
      *  // Do something with response (Rule was linked)
      * }).catch(function(error) {
      *  // Handle error
@@ -641,13 +639,13 @@ var Azuqua = function () {
      * })
      * @param {integer} ruleId - The ID of the rule to link
      * @param {integer} floId - The ID of the flo to link
-     * @param {azuquaCallback} [cb] - Callback function that handles the linkRuleAndFlo response
+     * @param {kenetixCallback} [cb] - Callback function that handles the linkRuleAndFlo response
      */
 
   }, {
     key: 'linkRuleAndFlo',
     value: function linkRuleAndFlo(ruleId, floId, cb) {
-      var endpoint = Azuqua.routes.linkRuleAndFlo.path.replace(':ruleId', ruleId).replace(':floId', floId);
+      var endpoint = Kenetix.routes.linkRuleAndFlo.path.replace(':ruleId', ruleId).replace(':floId', floId);
       return this.makeRequest('POST', endpoint).asCallback(cb);
     }
 
@@ -655,28 +653,28 @@ var Azuqua = function () {
      * Gets meta information about connectors in an org
      * @example
      * // Gets meta information about connectors an org has access to
-     * azuqua.connectors(orgId).then(function(connectors) {
+     * kenetix.connectors(orgId).then(function(connectors) {
      *  // Do something with response (Array of connectors)
      * }).catch(function(error) {
      *  // Handle error
      *  console.log('Error: ', error);
      * })
      * @param {integer} orgId - The ID (of an org you belong to) of the org to read
-     * @param {azuquaCallback} [cb] - Callback function that handles the response
+     * @param {kenetixCallback} [cb] - Callback function that handles the response
      */
 
   }, {
     key: 'getOrgConnectors',
     value: function getOrgConnectors(orgId, cb) {
-      var endpoint = Azuqua.routes.getOrgConnectors.path.replace(':orgId', orgId).replace(':orgId', orgId);
+      var endpoint = Kenetix.routes.getOrgConnectors.path.replace(':orgId', orgId).replace(':orgId', orgId);
       return this.makeRequest('GET', endpoint).asCallback(cb);
     }
 
     /**
      * A generic function that allows request to arbitrary routes. Handles building the headers before sending the request
      * @example
-     * // Make a generic request to an azuqua api - signing the request with proper headers
-     * azuqua.makeRequest('GET', 'flo/randomaliashere/invoke', {name: 'Azuqua', location: 'Seattle'})
+     * // Make a generic request to an kenetix api - signing the request with proper headers
+     * kenetix.makeRequest('GET', 'flo/randomaliashere/invoke', {name: 'Kenetix', location: 'Seattle'})
      *  .then(function(response) {
      *   // Do something with response data
      *  }).catch(function(error) {
@@ -749,7 +747,7 @@ var Azuqua = function () {
         route = route + '?' + querystring.stringify(query);
       }
 
-      var authHeaders = Azuqua.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
+      var authHeaders = Kenetix.generateHeaders(method, route, this.account.accessKey, this.account.accessSecret, data);
       if (_.isError(authHeaders)) {
         throw authHeaders;
       }
@@ -765,13 +763,13 @@ var Azuqua = function () {
     } // End make request method
 
     /**
-     * Loads the config at _path into azuqua instance's account settings
+     * Loads the config at _path into kenetix instance's account settings
      * @example
-     * // Create 'empty' azuqua instance
-     * var azuqua = new Azuqua();
+     * // Create 'empty' kenetix instance
+     * var kenetix = new Kenetix();
      * // Load config from location
-     * azuqua.loadConfig('./path/to/config.js');
-     * // azuqua instance now property configured
+     * kenetix.loadConfig('./path/to/config.js');
+     * // kenetix instance now property configured
      * @param {string} _path - The path of the config file
      */
 
@@ -790,9 +788,9 @@ var Azuqua = function () {
      * A static function that generates the headers for a particular request
      * @example
      * // Produce an object with valid API headers generated from params (Notice it's static')
-     * Azuqua.generateHeaders('GET', 'flo/:alias/invoke', 'myaccesskey', 'myaccesssecret', {
+     * Kenetix.generateHeaders('GET', 'flo/:alias/invoke', 'myaccesskey', 'myaccesssecret', {
      *  data : {
-     *    name : 'Azuqua'
+     *    name : 'Kenetix'
      *  }
      * })
      * @param {string} method - The HTTP method
@@ -856,8 +854,8 @@ var Azuqua = function () {
 
   }]);
 
-  return Azuqua;
-}(); // End of Azuqua class declaration
+  return Kenetix;
+}(); // End of Kenetix class declaration
 
 ///**
 // * Class representing a Flo instance
@@ -887,4 +885,4 @@ function Flo(floObject) {
   _.extend(this, floObject);
 };
 
-module.exports = Azuqua;
+module.exports = Kenetix;

@@ -3,9 +3,9 @@ const babel = require('gulp-babel');
 const watch = require('gulp-watch');
  
 gulp.task('default', () => {
-  return watch('src/azuqua.js', () => {
+  return watch('src/kenetix.js', () => {
     console.log('Recompiling@' + (new Date()).toGMTString());
-    gulp.src('./src/azuqua.js')
+    gulp.src('./src/kenetix.js')
         .pipe(babel({
           presets: ['es2015', 'es2016', 'stage-2']
         }))

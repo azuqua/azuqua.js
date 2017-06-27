@@ -1,13 +1,11 @@
-Azuqua Node.js client
+Kenetix Node.js client
 =====================
 
-This library provides an easy interface for interacting with your Azuqua flos.
-The Azuqua API is directly exposed to developers should you wish to write your own library.
-For full API documentation please visit [developer.azuqua.com]("https//developer.azuqua.com")
+This library provides an easy interface for interacting with your Kenetix flos.
+The Kenetix API is directly exposed to developers should you wish to write your own library.
+For full API documentation please visit [developer.kenetix.com]("https//developer.kenetix.com")
 
 ### Installation:
-`npm install azuqua`
-
 In order to make API requests you will need both your accessKey and accessSecret.
 These can also be found on your account information page.
 
@@ -16,33 +14,33 @@ These can also be found on your account information page.
 All asynchronous functions can return a promise if you prefer that pattern.
 When you call an asynchronous function and
 leave the callback undefined it will return a promise.
-By default Azuqua uses bluebird as its promise library.
+By default Kenetix uses bluebird as its promise library.
 
 ```javascript
 var async  = require("async");
 var config = require("./config.json");
-var Azuqua = require("azuqua");
+var Kenetix = require("kenetix");
 
 // Overriding httpOptions is option
 var httpOptions = {
-  host: "api.azuqua.com", // URL of the api for your instance
+  host: "api.kenetix.com", // URL of the api for your instance
   port: 443,
   protocol: "https"
 };
 
-// Create a new instance of an Azuqua client
-var azuqua = new Azuqua(
-  // accessKey and accessSecret are obtainable from the account options in the Azuqua designer
+// Create a new instance of an Kenetix client
+var kenetix = new Kenetix(
+  // accessKey and accessSecret are obtainable from the account options in the Kenetix designer
   config.accessKey,
   config.accessSecret,
-  httpOptions // this is optinal - only required if you are not interacting with the production Azuqua.com instance
+  httpOptions // this is optinal - only required if you are not interacting with the production Kenetix.com instance
 );
 
 // Read all flos and then invoke them
 var data = { a: 1 };
-azuqua.flos(function (error, flos) {
+kenetix.flos(function (error, flos) {
 	async.each(flos, function (flo, callback) {
-		azuqua.invoke(flo, data, function (err, resp) {
+		kenetix.invoke(flo, data, function (err, resp) {
 			if (err) {
 				console.log("Error invoking flo!", flo, err);
 				callback(err);
@@ -61,10 +59,10 @@ azuqua.flos(function (error, flos) {
 
 // Of course, promises are supported too...
 var data = { a : 1 };
-azuqua.flos()
+kenetix.flos()
   .then(function (flos) {
     var firstFlo = flos.pop();
-    return azuqua.invoke(firstFlo, { data : { name : Azuqua } })
+    return kenetix.invoke(firstFlo, { data : { name : Kenetix } })
   }).then(function (response) {
     console.log('Got a response from invoking a flo!', response);
   }).catch(function (error) {
@@ -72,7 +70,7 @@ azuqua.flos()
   })
 
 // Version 2 also supports custom requests via the static makeRequests method
-azuqua.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
+kenetix.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
   .then(function (response) {
     console.log('Here!');
     console.log(response.name);
@@ -83,7 +81,7 @@ azuqua.makeRequest('GET', '/flo/:alias/read', { alias : 'aliashere' })
 ```
 LICENSE - "MIT License"
 =======================
-Copyright (c) 2014 Azuqua
+Copyright (c) 2017 Kenetix
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

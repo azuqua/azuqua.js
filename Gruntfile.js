@@ -6,10 +6,9 @@ module.exports = function (grunt_) {
     jshint: {
       files: [ 
         'Gruntfile.js', 
-        'azuqua.js'
+        'kenetix.js'
       ],
-      options: {}
-    },
+      options: {} },
 
         // Execute server-side Mocha tests using the grunt-mocha-test module.
         // (Use grunt-mocha module for headless client-side testing within PhantomJS).
