@@ -7,15 +7,17 @@ const querystring = require('querystring');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const https = require('https');
+const https = require('https'); 
 
 // External modules
 const Promise = require('bluebird');
 const _ = require('lodash');
 
-// Local Requires
-// Explination: Conditionally load routes try local but if run from src, load from another path
-// const routes = require('../static/routes');
+const defaultRequestOptions = { 
+  asJSON: true,
+  errorOnStatusCode: true,
+  onlyBody: true 
+};
 
 function request(httpOptions, options) {
   return new Promise((resolve, reject) => {
@@ -31,7 +33,7 @@ function request(httpOptions, options) {
       headers: headers
     };
 
-    const req = https.request(requestOptions, (res) => {
+    const req = client.request(requestOptions, (res) => {
       res.body = '';
       res.on('data', (d) => {
         res.body = res.body + d;
@@ -53,19 +55,21 @@ function request(httpOptions, options) {
   });
 }
 
+// Throw an error on > 400 level status codes
 function requestThrowStatusCode(res) {
   if (res.statusCode >= 400) {
     let errProxy = new Error('Response sent error level status code');
-    errProxy.res = res;
-    throw errProxy;
+    errProxy.res = res; throw errProxy;
   }
   return res;
 }
 
+// Write over the body of the response with a JSON.parse version
 function requestParseJSON(res) {
   res.body = JSON.parse(res.body);
 }
 
+// Return only the body of the response
 function requestOnlyBody(res) {
   return _.get(res, 'body');
 }
@@ -125,51 +129,106 @@ class Azuqua {
     return new Azuqua(config);
   }
 
-  // Group Functions
-  createGroup(data) {
-    return this.makeRequest('post', `/v2/group`, data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  // Folder Functions
+  readAllFolders(data = {}) {
+    return this.makeRequest('get', `/v2/folders`, data, defaultRequestOptions);
   }
 
-  readGroup(id) {
-    return this.makeRequest('get', `/v2/group/${id}`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  createFolder(data) {
+    return this.makeRequest('post', `/v2/folder`, data, defaultRequestOptions);
   }
 
-  updateGroup(id, data) {
-    return this.makeRequest('put', `/v2/group/${id}`, data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  readFolder(id) {
+    return this.makeRequest('get', `/v2/folder/${id}`, {}, defaultRequestOptions);
   }
 
-  deleteGroup(id) {
-    return this.makeRequest('delete', `/v2/group/${id}`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  updateFolder(id, data) {
+    return this.makeRequest('put', `/v2/folder/${id}`, data, defaultRequestOptions);
   }
 
-  attachFloToGroup(groupId, floId) {
-    return this.makeRequest('post', `/v2/group/${groupId}/attach/flo/${floId}`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  deleteFolder(id) {
+    return this.makeRequest('delete', `/v2/folder/${id}`, {}, defaultRequestOptions);
   }
 
-  attachUserToGroup(groupId, userId) {
-    return this.makeRequest('post', `/v2/group/${groupId}/attach/user/${userId}`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+  changeFolderUserPermissions(folderId, userId, role) {
+    return this.makeRequest('put', `/v2/folder/${folderId}/user/${userId}/permissions`, { role }, defaultRequestOptions);
   }
+
+  readFlosInFolder(folderId) {
+    return this.makeRequest('get', `/v2/folder/${folderId}/flos`, {}, defaultRequestOptions);
+  }
+
+  readUsersInFolder(folderId) {
+    return this.makeRequest('get', `/v2/folder/${folderId}/users`, {}, defaultRequestOptions);
+  }
+  // End Folder Functions
 
   // Org Functions
+  createOrg(org_name, billing_admin_email) {
+    return this.makeRequest('post', `/v2/org`, { org_name, billing_admin_email }, defaultRequestOptions);
+  }
+
   readOrg(id) {
-    return this.makeRequest('get', `/v2/org/${id}`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+    return this.makeRequest('get', `/v2/org/${id}`, {}, defaultRequestOptions);
   }
 
   updateOrg(id, data) {
-    return this.makeRequest('put', `/v2/org/${id}`, data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+    return this.makeRequest('put', `/v2/org/${id}`, data, defaultRequestOptions);
   }
 
   readOrgFlos(id, data) {
-    return this.makeRequest('get', `/v2/org/${id}/flos`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+    return this.makeRequest('get', `/v2/org/${id}/flos`, {}, defaultRequestOptions);
   }
 
   readOrgConnectors(id, data) {
-    return this.makeRequest('get', `/v2/org/${id}/connectors`, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+    return this.makeRequest('get', `/v2/org/${id}/connectors`, {}, defaultRequestOptions);
   }
 
   inviteUserToOrg(id, email, message = 'You have been invited to an Azuqua Org!') {
-    return this.makeRequest('post', `/v2/org/${id}/invite`, { email, message }, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+    return this.makeRequest('post', `/v2/org/${id}/invite`, { email, message }, defaultRequestOptions);
   }
+
+  removeUserFromOrg(id, userId) {
+    return this.makeRequest('post', `/v2/org/${id}/remove/user/${userId}`, { }, defaultRequestOptions);
+  }
+
+  changeUserPermissionInOrg(userId, role) {
+    return this.makeRequest('PUT', `/v2/org/user/${userId}/permissions`, { role }, defaultRequestOptions);
+  }
+  // End Org Functions
+
+  // Account management
+  readAllAccounts(data = {}) {
+    return this.makeRequest('GET', '/v2/accounts', data, defaultRequestOptions);
+  }
+
+  readAccount(id) {
+    return this.makeRequest('GET', `/v2/account/${id}`, {}, defaultRequestOptions);
+  }
+
+  deleteAccount(id) {
+    return this.makeRequest('DELETE', `/v2/account/${id}`, {}, defaultRequestOptions);
+  }
+
+  changeAccountUserPermissions(accountId, userId, role) {
+    return this.makeRequest('PUT', `/v2/account/${accountId}/user/${userId}/permissions`, { role }, defaultRequestOptions);
+  }
+
+  // User Functions
+  readUserOrgs(data = {}) {
+    return this.makeRequest('GET', `/v2/user/orgs`, {}, defaultRequestOptions);
+  }
+  // End User Functions
+
+  // Flo functions
+  readFloAccounts(id) {
+    return this.makeRequest('GET', `/v2/flo/${id}/accounts`, {}, defaultRequestOptions);
+  }
+
+  moveFloToFolder(floId, folderId) {
+    return this.makeRequest('put', `/v2/flo/${floId}/move/folder/${folderId}`, {}, defaultRequestOptions);
+  }
+  // End Flo functions
 
   // Helper function for requesting arbitrary Azuqua endpoints
   makeRequest(verb, path, data, options = {}) {
