@@ -164,32 +164,32 @@ class Azuqua {
   // End Folder Functions
 
   // Org Functions
-  createOrg(org_name, billing_admin_email) {
+  /*createOrg(org_name, billing_admin_email) {
     return this.makeRequest('post', `/v2/org`, { org_name, billing_admin_email }, defaultRequestOptions);
+  }*/
+
+  readOrg() {
+    return this.makeRequest('get', `/v2/org`, {}, defaultRequestOptions);
   }
 
-  readOrg(id) {
-    return this.makeRequest('get', `/v2/org/${id}`, {}, defaultRequestOptions);
+  updateOrg(data) {
+    return this.makeRequest('put', `/v2/org`, data, defaultRequestOptions);
   }
 
-  updateOrg(id, data) {
-    return this.makeRequest('put', `/v2/org/${id}`, data, defaultRequestOptions);
+  readOrgFlos(data) {
+    return this.makeRequest('get', `/v2/org/flos`, {}, defaultRequestOptions);
   }
 
-  readOrgFlos(id, data) {
-    return this.makeRequest('get', `/v2/org/${id}/flos`, {}, defaultRequestOptions);
+  readOrgConnectors(data) {
+    return this.makeRequest('get', `/v2/org/connectors`, {}, defaultRequestOptions);
   }
 
-  readOrgConnectors(id, data) {
-    return this.makeRequest('get', `/v2/org/${id}/connectors`, {}, defaultRequestOptions);
+  inviteUserToOrg(email, message = 'You have been invited to an Azuqua Org!') {
+    return this.makeRequest('post', `/v2/org/invite`, { email, message }, defaultRequestOptions);
   }
 
-  inviteUserToOrg(id, email, message = 'You have been invited to an Azuqua Org!') {
-    return this.makeRequest('post', `/v2/org/${id}/invite`, { email, message }, defaultRequestOptions);
-  }
-
-  removeUserFromOrg(id, userId) {
-    return this.makeRequest('post', `/v2/org/${id}/remove/user/${userId}`, { }, defaultRequestOptions);
+  removeUserFromOrg(userId) {
+    return this.makeRequest('post', `/v2/org/remove/user/${userId}`, { }, defaultRequestOptions);
   }
 
   changeUserPermissionInOrg(userId, role) {
@@ -219,6 +219,12 @@ class Azuqua {
     return this.makeRequest('GET', `/v2/user/orgs`, {}, defaultRequestOptions);
   }
   // End User Functions
+  
+  // Connnector Functions
+  readConnectorVersion(name, version) {
+    return this.makeRequest('GET', `/v2/connectors/${name}/${version}`, {}, defaultRequestOptions);
+  }
+  // End Connector Functions
 
   // Flo functions
   readFloAccounts(id) {
@@ -227,6 +233,48 @@ class Azuqua {
 
   moveFloToFolder(floId, folderId) {
     return this.makeRequest('put', `/v2/flo/${floId}/move/folder/${folderId}`, {}, defaultRequestOptions);
+  }
+
+  copyFlo(floId, folderId = null) {
+    const data = {};
+    if (folderId) {
+      data.folder_id = folderId;
+    }
+    return this.makeRequest('POST', `/v2/flo/${floId}/copy`, data, defaultRequestOptions);
+  }
+
+  copyFloToOrg(floId, orgId, folderId = null) {
+    let data = {};
+    if (folderId) { data = { folder_id: folderId } };
+    return this.makeRequest('POST', `/v2/flo/${floId}/copy/org/${orgId}`, data, defaultRequestOptions);
+  }
+
+  modifyFlo(floId, data) {
+    return this.makeRequest('PUT', `/v2/flo/${floId}/modify`, data, defaultRequestOptions);
+  }
+
+  readFlo(floId) {
+    return this.makeRequest('GET', `/v2/flo/${floId}`, {}, defaultRequestOptions);
+  }
+
+  updateFlo(floId, data) {
+    return this.makeRequest('PUT', `/v2/flo/${floId}`, data, defaultRequestOptions);
+  }
+
+  deleteFlo(floId) {
+    return this.makeRequest('DELETE', `/v2/flo/${floId}`, {}, defaultRequestOptions);
+  }
+
+  floInputs(floId) {
+    return this.makeRequest('GET', `/v2/flo/${floId}/inputs`, {}, defaultRequestOptions);
+  }
+
+  enableFlo(floId) {
+    return this.makeRequest('PUT', `/v2/flo/${floId}/enable`, {}, defaultRequestOptions);
+  }
+
+  disableFlo(floId) {
+    return this.makeRequest('PUT', `/v2/flo/${floId}/disable`, {}, defaultRequestOptions);
   }
   // End Flo functions
 
