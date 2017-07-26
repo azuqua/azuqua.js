@@ -13,14 +13,17 @@ var path = require('path');
 var fs = require('fs');
 var http = require('http');
 var https = require('https');
+var routes = require('../static/routes');
 
 // External modules
 var Promise = require('bluebird');
 var _ = require('lodash');
 
-// Local Requires
-// Explination: Conditionally load routes try local but if run from src, load from another path
-// const routes = require('../static/routes');
+var defaultRequestOptions = {
+  asJSON: true,
+  errorOnStatusCode: true,
+  onlyBody: true
+};
 
 function request(httpOptions, options) {
   return new Promise(function (resolve, reject) {
@@ -42,7 +45,7 @@ function request(httpOptions, options) {
       headers: headers
     };
 
-    var req = https.request(requestOptions, function (res) {
+    var req = client.request(requestOptions, function (res) {
       res.body = '';
       res.on('data', function (d) {
         res.body = res.body + d;
@@ -64,19 +67,21 @@ function request(httpOptions, options) {
   });
 }
 
+// Throw an error on > 400 level status codes
 function requestThrowStatusCode(res) {
   if (res.statusCode >= 400) {
     var errProxy = new Error('Response sent error level status code');
-    errProxy.res = res;
-    throw errProxy;
+    errProxy.res = res;throw errProxy;
   }
   return res;
 }
 
+// Write over the body of the response with a JSON.parse version
 function requestParseJSON(res) {
   res.body = JSON.parse(res.body);
 }
 
+// Return only the body of the response
 function requestOnlyBody(res) {
   return _.get(res, 'body');
 }
@@ -118,74 +123,49 @@ var Azuqua = function () {
       port: 443
     }, _.get(config, 'httpOptions', {}));
 
-    // Finally set port
+    // Finally set protocol
     this.protocol = this.httpOptions.port === 443 ? 'https' : 'http';
 
     Object.freeze(this.httpOptions);
-  } // End of constructor
+
+    // Build routes
+    this.buildRoutes();
+  }
 
   _createClass(Azuqua, [{
-    key: 'createGroup',
+    key: 'buildRoutes',
+    value: function buildRoutes() {
+      var _this = this;
 
+      var azuqua = this;
+      _.forOwn(routes, function (group) {
+        _.forOwn(group, function (route, routeName) {
+          var method = _.toUpper(_.head(_.get(route, 'methods')));
+          var path = _.get(route, 'path');
+          var params = path.split('/').filter(function (part) {
+            return String(part).startsWith(':');
+          });
+          routeName = _.camelCase(routeName);
+          _this[routeName] = function () {
+            var _arguments = arguments;
 
-    // Group Functions
-    value: function createGroup(data) {
-      return this.makeRequest('post', '/v2/group', data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'readGroup',
-    value: function readGroup(id) {
-      return this.makeRequest('get', '/v2/group/' + id, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'updateGroup',
-    value: function updateGroup(id, data) {
-      return this.makeRequest('put', '/v2/group/' + id, data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'deleteGroup',
-    value: function deleteGroup(id) {
-      return this.makeRequest('delete', '/v2/group/' + id, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'attachFloToGroup',
-    value: function attachFloToGroup(groupId, floId) {
-      return this.makeRequest('post', '/v2/group/' + groupId + '/attach/flo/' + floId, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'attachUserToGroup',
-    value: function attachUserToGroup(groupId, userId) {
-      return this.makeRequest('post', '/v2/group/' + groupId + '/attach/user/' + userId, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-
-    // Org Functions
-
-  }, {
-    key: 'readOrg',
-    value: function readOrg(id) {
-      return this.makeRequest('get', '/v2/org/' + id, {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'updateOrg',
-    value: function updateOrg(id, data) {
-      return this.makeRequest('put', '/v2/org/' + id, data, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'readOrgFlos',
-    value: function readOrgFlos(id, data) {
-      return this.makeRequest('get', '/v2/org/' + id + '/flos', {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'readOrgConnectors',
-    value: function readOrgConnectors(id, data) {
-      return this.makeRequest('get', '/v2/org/' + id + '/connectors', {}, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
-    }
-  }, {
-    key: 'inviteUserToOrg',
-    value: function inviteUserToOrg(id, email) {
-      var message = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'You have been invited to an Azuqua Org!';
-
-      return this.makeRequest('post', '/v2/org/' + id + '/invite', { email: email, message: message }, { asJSON: true, errorOnStatusCode: true, onlyBody: true });
+            if (arguments.length < params.length) {
+              throw new Error('Expected at least ' + params.length + ' arguments');
+            }
+            var newPath = path;
+            params.forEach(function (param, idx) {
+              newPath = newPath.replace(param, _arguments[idx]);
+            });
+            var data = {};
+            if (method === 'POST' || method === 'PUT' && arguments.length > params.length) {
+              if (_.isPlainObject(arguments[arguments.length - 1])) {
+                data = arguments[arguments.length - 1];
+              }
+            }
+            return azuqua.makeRequest(method, newPath, data, defaultRequestOptions);
+          };
+        });
+      });
     }
 
     // Helper function for requesting arbitrary Azuqua endpoints

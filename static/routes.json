@@ -1,0 +1,147 @@
+{
+  "account": {
+    "read_all_accounts": {
+      "path": "/v2/accounts",
+      "methods": ["get"]
+    },
+    "read_account": {
+      "path": "/v2/account/:account_id",
+      "methods": ["get"]
+    },
+    "delete_account": {
+      "path": "/v2/account/:account_id",
+      "methods": ["delete"]
+    },
+    "update_account_user_permissions": {
+      "path": "/v2/account/:account_id/user/:user_id/permissions",
+      "methods": ["put"]
+    }
+  },
+  "connector": {
+    "read_connector_version": {
+      "path": "/v2/connectors/:connector_name/:connector_version",
+      "methods": ["get"]
+    }
+  },
+  "flo": {
+    "read_flo_accounts": {
+      "path": "/v2/flo/:flo_id/accounts",
+      "methods": ["get"]
+    },
+    "move_flo_to_folder": {
+      "path": "/v2/flo/:flo_id/move/folder/:folder_id",
+      "methods": ["put"]
+    },
+    "copy_flo": {
+      "path": "/v2/flo/:flo_id/copy",
+      "methods": ["post"]
+    },
+    "copy_flo_to_org": {
+      "path": "/v2/flo/:flo_id/copy/org/:org_id",
+      "methods": ["post"]
+    },
+    "modify_flo": {
+      "path": "/v2/flo/:flo_id/modify",
+      "methods": ["put"]
+    },
+    "read_flo": {
+      "path": "/v2/flo/:flo_id",
+      "methods": ["get"]
+    },
+    "update_flo": {
+      "path": "/v2/flo/:flo_id",
+      "methods": ["put"]
+    },
+    "delete_flo": {
+      "path": "/v2/flo/:flo_id",
+      "methods": ["delete"]
+    },
+    "enable_flo": {
+      "path": "/v2/flo/:flo_id/enable",
+      "methods": ["put"]
+    },
+    "disable_flo": {
+      "path": "/v2/flo/:flo_id/disable",
+      "methods": ["put"]
+    },
+    "read_flo_inputs": {
+      "path": "/v2/flo/:flo_id/inputs",
+      "methods": ["get"]
+    }
+  },
+  "folder": {
+    "read_all_folders": {
+      "path": "/v2/folders",
+      "methods": ["get"]
+    },
+    "create_folder": {
+      "path": "/v2/folder",
+      "methods": ["post"]
+    },
+    "read_folder": {
+      "path": "/v2/folder/:folder_id",
+      "methods": ["get"]
+    },
+    "update_folder": {
+      "path": "/v2/folder/:folder_id",
+      "methods": ["put"]
+    },
+    "delete_folder": {
+      "path": "/v2/folder/:folder_id",
+      "methods": ["delete"]
+    },
+    "update_folder_user_permissions": {
+      "path": "/v2/folder/:folder_id/user/:user_id/permissions",
+      "methods": ["put"]
+    },
+    "read_folder_flos": {
+      "path": "/v2/folder/:folder_id/flos",
+      "methods": ["get"]
+    },
+    "read_folder_users": {
+      "path": "/v2/folder/:folder_id/users",
+      "methods": ["get"]
+    }
+  },
+  "index.js": {},
+  "org": {
+    "create_org": {
+      "path": "/v2/org",
+      "methods": ["post"]
+    },
+    "read_org": {
+      "path": "/v2/org",
+      "methods": ["get"]
+    },
+    "update_org": {
+      "path": "/v2/org",
+      "methods": ["put"]
+    },
+    "read_org_flos": {
+      "path": "/v2/org/flos",
+      "methods": ["get"]
+    },
+    "read_org_connectors": {
+      "path": "/v2/org/connectors",
+      "methods": ["get"]
+    },
+    "invite_user_to_org": {
+      "path": "/v2/org/invite",
+      "methods": ["post"]
+    },
+    "remove_user_from_org": {
+      "path": "/v2/org/remove/user/:user_id",
+      "methods": ["post"]
+    },
+    "update_org_user_permissions": {
+      "path": "/v2/org/user/:user_id/permissions",
+      "methods": ["put"]
+    }
+  },
+  "user": {
+    "read_user_orgs": {
+      "path": "/v2/user/orgs",
+      "methods": ["get"]
+    }
+  }
+}
