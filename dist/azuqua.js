@@ -120,7 +120,8 @@ var Azuqua = function () {
     this.protocol = 'https';
     this.httpOptions = _.extend({
       host: 'api.azuqua.com',
-      port: 443
+      port: 443,
+      protocol: 'https'
     }, _.get(config, 'httpOptions', {}));
 
     // Finally set protocol
