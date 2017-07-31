@@ -1,7 +1,7 @@
 Azuqua Node.js client
 =====================
 
-Version 3 of the client (this version) is intented to be used to interact solely with version 2 of the Azuqua API.
+Version 3 of the client (this version) is intented to be used to interact solely with version 2 (Routes prefixed with /v2/) of the Azuqua API.
 
 This library provides an easy interface for interacting with your Azuqua account and information.
 The Azuqua API is directly exposed to developers should you wish to write your own library.
@@ -9,19 +9,20 @@ The Azuqua API is directly exposed to developers should you wish to write your o
 ### Installation:
 `npm install azuqua`
 
-In order to make API requests you will need both your accessKey and accessSecret.
-These can also be found on your account information page.
+In order to make API requests you will need both your accessKey and accessSecret or an org.
+These can also be found on your account information page. Settings > Developer Settings.
 
 ### Usage
 
 All functions return a promise.
-By default Azuqua uses bluebird as its promise library.
+Azuqua.js uses bluebird as its promise library.
 
 ```javascript
 const Azuqua = require('./dist/azuqua.js');
 
 const httpOptions = {
   host: 'api.azuqua.com',
+  protocol: 'https',
   port: 443
 };
 
@@ -31,27 +32,220 @@ const azuqua = new Azuqua({
   httpOptions
 });
 
-const EXAMPLE_ORG_ID = 42;
-const EXAMPLE_GROUP_ID = 10;
 
-// Some examples for doing org management
-azuqua.createGroup({ org_id: EXAMPLE_ORG_ID, name: 'New Group', description: 'This is a group' })
-  .then(console.log)
-  .catch(console.error);
 
-azuqua.readGroup(EXAMPLE_GROUP_ID)
-  .then(console.log)
-  .catch(console.error);
+azuqua.readAllAccounts()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
 
-azuqua.updateGroup(EXAMPLE_GROUP_ID, { name: 'New name' })
-  .then(console.log)
-  .catch(console.error);
 
-azuqua.deleteGroup(EXAMPLE_GROUP_ID)
-  .then(console.log)
-  .catch(console.error);
+
+azuqua.readAccount(accountId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.deleteAccount(accountId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "role": "NONE"
+}
+azuqua.updateAccountUserPermissions(accountId, userId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readConnectorVersion(connectorName, connectorVersion)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFlo(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "name": "",
+  "description": ""
+}
+azuqua.updateFlo(floId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.deleteFlo(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.enableFlo(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.disableFlo(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFloInputs(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFloAccounts(floId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.moveFloToFolder(floId, folderId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "configs": "",
+  "inputs": [],
+  "outputs": []
+}
+azuqua.modifyFlo(floId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "folder_id": 0
+}
+azuqua.copyFlo(floId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "folder_id": 0
+}
+azuqua.copyFloToOrg(floId, orgId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readAllFolders()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "name": "",
+  "description": ""
+}
+azuqua.createFolder(data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFolder(folderId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "name": "",
+  "description": ""
+}
+azuqua.updateFolder(folderId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.deleteFolder(folderId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFolderFlos(folderId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readFolderUsers(folderId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "role": "NONE"
+}
+azuqua.updateFolderUserPermissions(folderId, userId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readOrg()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "name": "",
+  "display_name": ""
+}
+azuqua.updateOrg(data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readOrgFlos()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readOrgConnectors()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.removeUserFromOrg(userId)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+const data = {
+  "role": "MEMBER"
+}
+azuqua.updateOrgUserPermissions(userId, data)
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
+
+
+
+azuqua.readUserOrgs()
+  .then(console.log) // Log the data returned
+  .catch(console.error) // Log the error returned
 
 ```
+
 LICENSE - "MIT License"
 =======================
 Copyright (c) 2017 Azuqua
