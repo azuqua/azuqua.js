@@ -1,24 +1,33 @@
-Azuqua Node.js client
+Azuqua Node.js Client
 =====================
 
-Version 3 of the client (this version) is intented to be used to interact solely with version 2 (Routes prefixed with /v2/) of the Azuqua API.
+[PLACEHOLDER_DESC_HERE]
 
-This library provides an easy interface for interacting with your Azuqua account and information.
-The Azuqua API is directly exposed to developers should you wish to write your own library.
+Requirements
+============
 
-### Installation:
-`npm install azuqua`
+Version > Node 4.0.0
 
-In order to make API requests you will need both your accessKey and accessSecret or an org.
-These can also be found on your account information page. Settings > Developer Settings.
+Install
+=======
 
-### Usage
+Add azuqua as a dependency
 
+```bash
+npm install --save git+ssh://git@github.com/azuqua/azuqua.js#apiV2
+```
+
+```javascript
+const Azuqua = require('Azuqua');
+```
+
+Usage
+=====
 All functions return a promise.
 Azuqua.js uses bluebird as its promise library.
 
 ```javascript
-const Azuqua = require('./dist/azuqua.js');
+const Azuqua = require('azuqua');
 
 const httpOptions = {
   host: 'api.azuqua.com',
