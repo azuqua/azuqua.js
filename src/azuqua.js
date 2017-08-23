@@ -9,6 +9,8 @@ const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const routes = require('../static/routes');
+const FormData = require('form-data');
+const stream = require('stream');
 
 // External modules
 const Promise = require('bluebird');
@@ -49,10 +51,14 @@ function request(httpOptions, options) {
       reject(e);
     });
 
-    if (verb === 'post' || verb === 'put') {
-      req.write(body);
+    if (body instanceof stream.Readable) {
+      body.pipe(req);
+    } else {
+      if (verb === 'post' || verb === 'put') {
+        req.write(body);
+      }
+      req.end();
     }
-    req.end();
   });
 }
 
@@ -73,6 +79,27 @@ function requestParseJSON(res) {
 // Return only the body of the response
 function requestOnlyBody(res) {
   return _.get(res, 'body');
+}
+
+// Helper function to read file and create hash of it
+// Returns a tuple of hash/unread stream
+function formDataToHashAndStream(formPassThrough) {
+  return new Promise((resolve, reject) => {
+    const hash = crypto.createHash('sha256');
+    // Create a initial stream since FormData doesn't appear to like being forked
+    const hashReadStream = formPassThrough.pipe(new stream.PassThrough());
+    const unreadReadStream = formPassThrough.pipe(new stream.PassThrough());
+
+    hashReadStream.on('data', (data) => {
+      hash.update(data);
+    });
+    hashReadStream.on('end', () => {
+      return resolve([hash.digest('hex'), unreadReadStream]);
+    });
+    hashReadStream.on('error', (error) => {
+      return reject(error);
+    });
+  });
 }
 
 
@@ -130,7 +157,6 @@ class Azuqua {
     if (!config.accessKey || !config.accessSecret) {
       throw new Error('Missing AZUQUA_ACCESS_KEY or AZUQUA_ACCESS_SECRET in environment');
     }
-
     return new Azuqua(config);
   }
 
@@ -160,6 +186,95 @@ class Azuqua {
         }
       });
     });
+  }
+
+  invoke(alias, data) {
+    const { 
+      query = {},
+      headers = {},
+      body = {},
+      files = {}
+    } = data;
+    const verb = String(data.verb || 'post').toLowerCase();
+    const timestamp = (new Date()).toISOString();
+
+    // Create path
+    let path = `/v2/flo/${alias}/invoke`;
+    let queryString = '';
+    if (!_.isEmpty(query)) {
+      let queryString = querystring.stringify(query);
+      path = path + '?' + queryString;
+    }
+
+    const requestHeaders = _.extend({
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'x-api-accesskey' : this.account.accessKey,
+      'x-api-timestamp' : timestamp,
+    }, headers);
+
+    let bodyHashInput;
+    let bodyData;
+    return Promise.resolve()
+      .then(() => {
+        const filesPresent = _.isPlainObject(files) && !_.isEmpty(files);
+        if (filesPresent || headers['Content-Type'] === 'multipart/form-data') {
+          const form = new FormData();
+
+          // Add body then files to request body
+          Object.keys(body)
+            .forEach(bodyFieldName => {
+              form.append(bodyFieldName, body[bodyFieldName]);
+            });
+          Object.keys(files)
+            .forEach(fileFieldName => {
+              form.append(fileFieldName, files[fileFieldName]);
+            });
+
+          // Add headers to request
+          _.extend(requestHeaders, form.getHeaders());
+
+          const formPassThrough = new stream.PassThrough();
+          form.pipe(formPassThrough);
+
+          return formDataToHashAndStream(formPassThrough)
+            .spread((hash, stream) => {
+              bodyHashInput = hash;
+              bodyData = stream;
+              return '';
+            });
+        } else {
+          bodyHashInput = bodyData = _.isEmpty(body) ? '' : JSON.stringify(body);
+          return '';
+        }
+      })
+      .then(() => {
+        let meta = [verb, path, timestamp].join(':') + bodyHashInput;
+        let hash = crypto.createHmac('sha256', this.account.accessSecret)
+          .update(new Buffer(meta, 'utf-8'))
+          .digest('hex');
+
+        requestHeaders['x-api-hash'] = hash;
+
+        const requestOptions = {
+          verb,
+          path,
+          headers: requestHeaders,
+          body: bodyData
+        };
+        return request(this.httpOptions, requestOptions)
+      })
+      .then(res => {
+        res = requestOnlyBody(res);
+        return res;
+      })
+      .catch(e => {
+        let body = requestOnlyBody(e.res);
+        let errProxy = new Error('Response sent error level status code');
+        errProxy.body = body;
+        throw errProxy;
+        throw e;
+      });
   }
 
   // Helper function for requesting arbitrary Azuqua endpoints

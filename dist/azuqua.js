@@ -14,6 +14,8 @@ var fs = require('fs');
 var http = require('http');
 var https = require('https');
 var routes = require('../static/routes');
+var FormData = require('form-data');
+var stream = require('stream');
 
 // External modules
 var Promise = require('bluebird');
@@ -60,10 +62,14 @@ function request(httpOptions, options) {
       reject(e);
     });
 
-    if (verb === 'post' || verb === 'put') {
-      req.write(body);
+    if (body instanceof stream.Readable) {
+      body.pipe(req);
+    } else {
+      if (verb === 'post' || verb === 'put') {
+        req.write(body);
+      }
+      req.end();
     }
-    req.end();
   });
 }
 
@@ -84,6 +90,27 @@ function requestParseJSON(res) {
 // Return only the body of the response
 function requestOnlyBody(res) {
   return _.get(res, 'body');
+}
+
+// Helper function to read file and create hash of it
+// Returns a tuple of hash/unread stream
+function formDataToHashAndStream(formPassThrough) {
+  return new Promise(function (resolve, reject) {
+    var hash = crypto.createHash('sha256');
+    // Create a initial stream since FormData doesn't appear to like being forked
+    var hashReadStream = formPassThrough.pipe(new stream.PassThrough());
+    var unreadReadStream = formPassThrough.pipe(new stream.PassThrough());
+
+    hashReadStream.on('data', function (data) {
+      hash.update(data);
+    });
+    hashReadStream.on('end', function () {
+      return resolve([hash.digest('hex'), unreadReadStream]);
+    });
+    hashReadStream.on('error', function (error) {
+      return reject(error);
+    });
+  });
 }
 
 /** Class representing an Azuqua instance */
@@ -168,6 +195,92 @@ var Azuqua = function () {
         });
       });
     }
+  }, {
+    key: 'invoke',
+    value: function invoke(alias, data) {
+      var _this2 = this;
+
+      var _data$query = data.query,
+          query = _data$query === undefined ? {} : _data$query,
+          _data$headers = data.headers,
+          headers = _data$headers === undefined ? {} : _data$headers,
+          _data$body = data.body,
+          body = _data$body === undefined ? {} : _data$body,
+          _data$files = data.files,
+          files = _data$files === undefined ? {} : _data$files;
+
+      var verb = String(data.verb || 'post').toLowerCase();
+      var timestamp = new Date().toISOString();
+
+      // Create path
+      var path = '/v2/flo/' + alias + '/invoke';
+      var queryString = '';
+      if (!_.isEmpty(query)) {
+        var _queryString = querystring.stringify(query);
+        path = path + '?' + _queryString;
+      }
+
+      var requestHeaders = _.extend({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'x-api-accesskey': this.account.accessKey,
+        'x-api-timestamp': timestamp
+      }, headers);
+
+      var bodyHashInput = void 0;
+      var bodyData = void 0;
+      return Promise.resolve().then(function () {
+        var filesPresent = _.isPlainObject(files) && !_.isEmpty(files);
+        if (filesPresent || headers['Content-Type'] === 'multipart/form-data') {
+          var form = new FormData();
+
+          // Add body then files to request body
+          Object.keys(body).forEach(function (bodyFieldName) {
+            form.append(bodyFieldName, body[bodyFieldName]);
+          });
+          Object.keys(files).forEach(function (fileFieldName) {
+            form.append(fileFieldName, files[fileFieldName]);
+          });
+
+          // Add headers to request
+          _.extend(requestHeaders, form.getHeaders());
+
+          var formPassThrough = new stream.PassThrough();
+          form.pipe(formPassThrough);
+
+          return formDataToHashAndStream(formPassThrough).spread(function (hash, stream) {
+            bodyHashInput = hash;
+            bodyData = stream;
+            return '';
+          });
+        } else {
+          bodyHashInput = bodyData = _.isEmpty(body) ? '' : JSON.stringify(body);
+          return '';
+        }
+      }).then(function () {
+        var meta = [verb, path, timestamp].join(':') + bodyHashInput;
+        var hash = crypto.createHmac('sha256', _this2.account.accessSecret).update(new Buffer(meta, 'utf-8')).digest('hex');
+
+        requestHeaders['x-api-hash'] = hash;
+
+        var requestOptions = {
+          verb: verb,
+          path: path,
+          headers: requestHeaders,
+          body: bodyData
+        };
+        return request(_this2.httpOptions, requestOptions);
+      }).then(function (res) {
+        res = requestOnlyBody(res);
+        return res;
+      }).catch(function (e) {
+        var body = requestOnlyBody(e.res);
+        var errProxy = new Error('Response sent error level status code');
+        errProxy.body = body;
+        throw errProxy;
+        throw e;
+      });
+    }
 
     // Helper function for requesting arbitrary Azuqua endpoints
 
@@ -194,8 +307,8 @@ var Azuqua = function () {
       if (verb === 'get' || verb === 'delete') {
         var queryString = '';
         if (!_.isEmpty(data)) {
-          var _queryString = querystring.stringify(data);
-          path = path + '?' + _queryString;
+          var _queryString2 = querystring.stringify(data);
+          path = path + '?' + _queryString2;
         }
       } else {
         body = _.isEmpty(data) ? '' : JSON.stringify(data);
@@ -265,7 +378,6 @@ var Azuqua = function () {
       if (!config.accessKey || !config.accessSecret) {
         throw new Error('Missing AZUQUA_ACCESS_KEY or AZUQUA_ACCESS_SECRET in environment');
       }
-
       return new Azuqua(config);
     }
   }, {
