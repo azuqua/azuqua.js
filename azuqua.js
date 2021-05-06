@@ -150,7 +150,7 @@ var Azuqua = function(accessKey, accessSecret, httpOptions){
     }
     _.extend(self.httpOptions, httpOptions);
   }
-  Object.freeze(self.httpOptions)
+  Object.freeze(self.httpOptions);
   self.client = new RestJS({ protocol: protocol });
 
   self.signData = function(data, verb, path, timestamp) {
@@ -293,7 +293,7 @@ Azuqua.prototype.getFlos = function (_callback){
             org_id : flo.org_id,
             active: flo.active,
             published: flo.published
-          })
+          });
         }, callback);
       }
     });

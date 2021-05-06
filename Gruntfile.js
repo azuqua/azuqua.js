@@ -4,7 +4,7 @@ module.exports = function (grunt_) {
     pkg: grunt_.file.readJSON("package.json"),
 
     jshint: {
-      files: [ 
+      all: [ 
         'Gruntfile.js', 
         'azuqua.js'
       ],
