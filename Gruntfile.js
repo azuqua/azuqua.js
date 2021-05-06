@@ -14,7 +14,9 @@ module.exports = function (grunt_) {
         // Execute server-side Mocha tests using the grunt-mocha-test module.
         // (Use grunt-mocha module for headless client-side testing within PhantomJS).
         mochaTest: {
-          options: { reporter: 'spec', checkLeaks: true },
+          test: {
+            options: { reporter: 'spec', checkLeaks: true },
+          },
           src: ['test/test.js']
         }
       };
