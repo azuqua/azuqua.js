@@ -464,13 +464,6 @@ growl@1.10.5:
   resolved "https://registry.yarnpkg.com/growl/-/growl-1.10.5.tgz#f2735dc2283674fa67478b10181059355c369e5e"
   integrity sha512-qBr4OuELkhPenW6goKVXiv47US3clb3/IbuWF9KNKEijAy9oeHxU9IgzjvJhHkUzhaj7rOUD7+YGWqUjLp5oSA==
 
-grunt-contrib-clean@~0.5.0:
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/grunt-contrib-clean/-/grunt-contrib-clean-0.5.0.tgz#f53dfdee0849b1c7b40e9ebbba69f48c4c6079c5"
-  integrity sha1-9T397ghJsce0Dp67umn0jExgecU=
-  dependencies:
-    rimraf "~2.2.1"
-
 grunt-contrib-jshint@^3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/grunt-contrib-jshint/-/grunt-contrib-jshint-3.0.0.tgz#4b52395e78bab122134c99b3b2d8907f17e38cbd"
@@ -922,7 +915,7 @@ require-directory@^2.1.1:
     qs "^6.0.0"
     xml2js "*"
 
-rimraf@~2.2.1, rimraf@~2.2.8:
+rimraf@~2.2.8:
   version "2.2.8"
   resolved "https://registry.yarnpkg.com/rimraf/-/rimraf-2.2.8.tgz#e439be2aaee327321952730f99a8929e4fc50582"
   integrity sha1-5Dm+Kq7jJzIZUnMPmaiSnk/FBYI=

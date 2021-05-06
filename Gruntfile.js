@@ -23,12 +23,10 @@ module.exports = function (grunt_) {
 
       grunt_.initConfig(configObject);
 
-      grunt_.loadNpmTasks("grunt-contrib-clean");
       grunt_.loadNpmTasks("grunt-contrib-jshint");
       grunt_.loadNpmTasks("grunt-mocha-test");
 
       grunt_.registerTask("lint", [ "jshint" ]);
       grunt_.registerTask("test", [ "mochaTest" ]);
       grunt_.registerTask("default", [ "lint", "test" ]);
-
     };
