@@ -1161,9 +1161,9 @@ resolve@^1.19.0, resolve@^1.9.0:
     is-core-module "^2.2.0"
     path-parse "^1.0.6"
 
-"restjs@git://github.com/azuqua/restjs.git":
+"restjs@git+ssh://git@github.com:azuqua/restjs#v0.1.0":
   version "0.1.0"
-  resolved "git://github.com/azuqua/restjs.git#2536a38bda4271d9edd11392070cf9bed8c75ae4"
+  resolved "git+ssh://git@github.com:azuqua/restjs#2536a38bda4271d9edd11392070cf9bed8c75ae4"
   dependencies:
     async "0.2.10"
     qs "^6.0.0"
