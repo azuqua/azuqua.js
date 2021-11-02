@@ -37,7 +37,7 @@
     "async": "~0.2.10",
     "underscore": "^1.12.1",
     "bluebird": "~1.1.1",
-    "restjs": "git://github.com/azuqua/restjs.git"
+    "restjs": "git+ssh://git@github.com:azuqua/restjs#v0.1.0"
   },
   "devDependencies": {
     "chai": "*",
